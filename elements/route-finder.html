@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link href="../bower_components/polymer/polymer.html" rel="import">
+	<link href="../bower_components/paper-drawer-panel/paper-drawer-panel.html" rel="import">
+	<link href="../bower_components/paper-header-panel/paper-header-panel.html" rel="import">
+	<link href="../bower_components/paper-toolbar/paper-toolbar.html" rel="import">
+	<link href="../bower_components/paper-icon-button/paper-icon-button.html" rel="import">
+	<link href="../bower_components/paper-material/paper-material.html" rel="import">
+	<link href="../bower_components/paper-menu/paper-menu.html" rel="import">	
+	<link href="../bower_components/paper-item/paper-item.html" rel="import">
+	<link href="../bower_components/paper-input/paper-input.html" rel="import">
+	<link href="../bower_components/iron-icons/iron-icons.html" rel="import">
+	<link href="../bower_components/leaflet-map/leaflet-map.html" rel="import">
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+	<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+
+</head>
+
+<dom-module id="route-finder">
+	<style>
+	.list {
+		padding: 0;
+/* 		border-right: 1px solid #ccc; */
+	}
+	
+	.list paper-item {
+		min-height: 80px;
+		border-bottom: 1px solid #dedede;
+		background-color: #fafafa;
+	}
+	
+	#DirectionsEntry {
+		padding-top: 50px;
+		float: left;
+		max-width: none;
+	}
+	
+	paper-material {
+		background-color: #fff;
+		max-width: 640px;
+		width: 95%;
+		margin: 25px auto;
+		position: relative;
+	}
+  
+	paper-fab {
+	    background: #00BCD4;
+	    position: relative;
+    }
+
+	.main-panel {
+		background-color: #eee;
+		height: 100vh;
+		overflow-y: hidden;
+	}
+	paper-toolbar {
+		background: #66ccff;
+	}
+	paper-input{
+		max-width: 140px;
+	}	
+	paper-drawer-panel{
+		position: relative;
+		--paper-drawer-panel-main-container: {
+    		background-color: gray;
+    	};
+    	--paper-drawer-panel-left-drawer-container: {
+    		background-color: red;
+  		};
+	}
+	</style>
+  
+	<template>
+		<paper-header-panel-tall>
+			<paper-toolbar class="tall">
+				<div id="DirectionsEntry" class="top">
+					<paper-input id="inputStart" label={{testText}}></paper-input>
+					<paper-input id="inputStop" label={{testText}}></paper-input> 
+					<paper-fab icon="icons:add" on-tap="sendToOTP"></paper-fab>
+				</div>
+			</paper-toolbar>
+		</paper-header-panel-tall>
+		<paper-drawer-panel>
+			<div drawer>
+			</div>
+			<div main>
+				<leaflet-map latitude="51.505" longitude="-0.09" zoom="13">
+
+				</leaflet-map>
+			</div>
+		</paper-drawer-panel> 
+	</template>
+</dom-module>
+
+<script>
+  // element registration
+  Polymer({
+    is: "route-finder",
+
+    // add properties and methods on the element's prototype
+    properties: {
+    	testText:{ 
+    		type: String,
+    		value: "Nowhere"
+    	},
+    	requestString:{
+    		type: String,
+    		value:"http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace="
+    	}
+    },
+    sendToOTP: function(e){
+    	var respone;
+    	var reqHandler = new XMLHttpRequest();
+    	reqHandler.addEventListener("load", processRequest);
+    	reqHandler.open('GET', "http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=52.24188683382461,20.994014739990234&toPlace=52.19508676858302,21.002769470214844&time=2:44pm&date=02-04-2016&mode=TRANSIT,WALK&maxWalkDistance=804.672&arriveBy=false&wheelchair=false&locale=en", true);
+    	reqHandler.send();
+    	
+    	//this.$.inputStop.value = respone.ip;	
+    	
+    	function processRequest(e){
+    		if(reqHandler.status == 200){
+  				//respone = JSON.parse(reqHandler.responseText);  	
+  				console.log(reqHandler.responseXML);		
+  			}
+  		}
+    },
+	ready: function(e){
+		this.addEventListener('complete', this.handleComplete);
+		console.log(this.present);
+		this.addEventListener('presence', presChange);
+		function presChange(e){
+			var pres = this.present.pop()
+			this.$.here.innerHTML = pres.occupancy;
+		}
+		window.onresize = function(event) {
+		};
+		window.onresize();
+	}
+  });
+  function findWithAttr(array, attr, value) {
+    for(var i = 0; i < array.length; i += 1) {
+        if(array[i][attr] === value) {
+            return i;
+        }
+    } return -1;
+  }
+
+</script>
