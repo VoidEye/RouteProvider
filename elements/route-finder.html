@@ -114,7 +114,7 @@
 					<paper-input id="inputStop" label="To" value="Opaczewska 34"></paper-input>
 					<input type="text" id="datePicker">
 					<input type="text" id="hourPicker">:<input type="text" id="minutePicker">
-					<paper-radio-group selected="Departure">
+					<paper-radio-group selected="Departure" id="selection">
 						<paper-radio-button name="Departure">Odjazd</paper-radio-button>
 						<paper-radio-button name="Arrival">Przyjazd</paper-radio-button>
 					</paper-radio-group>
@@ -122,6 +122,8 @@
 				<div id="JourneyOptions">
 					<paper-fab id="mainButton" icon="icons:reply" on-click="forwardRequest"></paper-fab>
 					<paper-button raised id="getToday" on-click="setCurrentDate">Now</paper-button>
+					Maksymalna trasa piechotą:
+					<input type="text" id="maxWalk">
 				</div>
 			</paper-toolbar>
 		</paper-header-panel>
@@ -240,7 +242,6 @@
    		bounds = L.latLngBounds(southWest, northEast);
     	map.setMaxBounds(bounds);
     	setDate();
-    	
 	}),
 
 	L.Icon.Default.imagePath = "../images";
@@ -280,19 +281,26 @@
 	}
 
 	function sendToOTP(start_stopCoords){	
+		var arriveBy = (document.getElementById('selection').selected === "Departure") ? 'false' : 'true';
+		var maxWalkDistance = document.getElementById('maxWalk').value;
 		var date = document.getElementById('datePicker').value;
+		var hours = document.getElementById('hourPicker').value; 
+		var suffix = (hours >= 12)? 'pm' : 'am';
+		
 		date = date.replace(/\//g,"-");
-		console.log(date);
-		/*
-		var requestString = "http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=" + start_stopCoords[0].coords.lat + "," + start_stopCoords[0].coords.lng + "&toPlace=" + start_stopCoords[1].coords.lat + "," + start_stopCoords[1].coords.lng + "&time=2:44pm&date=02-04-2016&mode=TRANSIT,WALK&maxWalkDistance=804.672&arriveBy=false&wheelchair=false&locale=en";
+		hours = ((parseInt(hours)+11)%12)+1;
+		
+		var time = hours + ":" + document.getElementById('minutePicker').value + suffix;
+
+		var requestString = "http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=" + start_stopCoords[0].coords.lat + "," + start_stopCoords[0].coords.lng + "&toPlace=" + start_stopCoords[1].coords.lat + "," + start_stopCoords[1].coords.lng + "&time=" + time + "&date=" + date + "&mode=TRANSIT,WALK&maxWalkDistance=" + maxWalkDistance + "&arriveBy=" + arriveBy + "&wheelchair=false&locale=en";
 		console.log(requestString);
 		var respone;
     	var reqHandler = new XMLHttpRequest();
 
  		reqHandler.addEventListener("load", processRequest);
-    	reqHandler.open('GET',requestString , true);
-    	reqHandler.send();
-	*/
+    	//reqHandler.open('GET',requestString , true);
+    	//reqHandler.send();
+
     	function processRequest(e){
     		if(reqHandler.status == 200){
   				//respone = JSON.parse(reqHandler.responseText);  	
@@ -301,26 +309,28 @@
 		}
 	}
 
+	var markers ={};
 	function setMarker(id, latLng){
-		var parent = document.getElementById('warsawMap').map;
-
-		var marker = new L.marker(latLng, {id:id, draggable:'true'});
-		
-		if(id === 'start'){
-			marker.on('dragend', function(){
-				var markerCoords = marker.getLatLng();
-				document.getElementById('inputStart').value = markerCoords.lat + "," + markerCoords.lng;
-				console.log("start: " + marker.getLatLng());
-			});
+		if(markers[id] != null)
+			markers[id].setLatLng(latLng);
+		else{
+			var marker = new L.marker(latLng, {id:id, draggable:'true'});
+			markers[id] = marker;
+			if(id === 'start'){
+				marker.on('dragend', function(){
+					var markerCoords = marker.getLatLng();
+					document.getElementById('inputStart').value = markerCoords.lat + "," + markerCoords.lng;
+				});
+			}
+			else if(id === 'stop'){
+				marker.on('dragend', function(){
+					var markerCoords = marker.getLatLng();
+					document.getElementById('inputStop').value = markerCoords.lat + "," + markerCoords.lng;
+				});
+			}
+			var parent = document.getElementById('warsawMap').map;
+			parent.addLayer(marker);
 		}
-		else if(id === 'stop'){
-			marker.on('dragend', function(){
-				var markerCoords = marker.getLatLng();
-				document.getElementById('inputStop').value = markerCoords.lat + "," + markerCoords.lng;
-				console.log("stop: "+ marker.getLatLng());
-			});
-		}
-		parent.addLayer(marker);
 	}
 
 /*
