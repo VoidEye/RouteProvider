@@ -22,15 +22,15 @@
     "paper-toggle-button": "polymerelements/paper-toggle-button#^1.0.0",
     "paper-toolbar": "polymerelements/paper-toolbar#^1.0.0"
   },
+  "ignore": [],
   "homepage": "https://github.com/polymerelements/app-layout-templates",
-  "_release": "5312519568",
+  "_release": "a928745455",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "5312519568796957bebb3bb80e2c2d21d1cadf70"
+    "commit": "a928745455112fe8259cc0ec0718f2ca469ce0e3"
   },
   "_source": "git://github.com/polymerelements/app-layout-templates.git",
   "_target": "*",
-  "_originalSource": "polymerelements/app-layout-templates",
-  "_direct": true
+  "_originalSource": "polymerelements/app-layout-templates"
 }

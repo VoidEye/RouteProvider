@@ -27,6 +27,7 @@
     "paper-fab": "polymerelements/paper-fab#~1.0.2",
     "paper-input": "polymerelements/paper-input#~1.0.5",
     "platform": "Polymer/platform",
-    "polymer": "Polymer/polymer#^1.2.4"
+    "polymer": "Polymer/polymer#^1.2.4",
+    "moment-element": "^0.2.1"
   }
 }
