@@ -32,11 +32,13 @@
 <dom-module id="route-finder">
 	<style>
 	#DirectionsEntry {
+		margin-top: 15px;
 		padding-top: 50px;
 		max-width: 180px;
 		max-height: 200px;
 	}
 	#JourneyOptions {
+		width: 120px;
 		margin-top: 30px;
 	}
 	#hourPicker, #minutePicker{
@@ -49,12 +51,29 @@
 	#getToday{
 		background-color: 5059FF;
 		font-size: 12px;
-		margin-top: 10px;
+		margin-top: 5px;
+	}
+	#swap{
+		background-color: 5059FF;
+		max-width: 10px;
+		font-size: 10px;
+		margin-top: 5px;
 	}
 	.main-panel {
 		background-color: #eee;
 		height: 100vh;
 		overflow-y: hidden;
+	}
+	#mainButton{
+		margin-top: 40px;
+		width: 40;
+		height: 30px;
+	}
+	#internal{
+		width:180px;
+	}
+	#maxWalk{
+		width: 55px;
 	}
 	paper-radio-group  > * {
   		padding: 3px;
@@ -70,12 +89,6 @@
 		margin: 25px auto;
 		position: relative;
 	}
-	paper-fab {
-	    background-color: 0EAEFB;
-    	width: 40px;
-    	height: 35px;
-    	margin-left: 5px
-    }
 	paper-toolbar {
 		color: black;
 		background: #C7EDFF;
@@ -121,8 +134,11 @@
 				</div>
 				<div id="JourneyOptions">
 					<paper-fab id="mainButton" icon="icons:reply" on-click="forwardRequest"></paper-fab>
-					<paper-button raised id="getToday" on-click="setCurrentDate">Now</paper-button>
-					Maksymalna trasa piechotą:
+					<div id ="internal">
+						<paper-button raised id="swap" on-click="swapStartStop"><></paper-button>
+						<paper-button raised id="getToday" on-click="setCurrentDate">Now</paper-button>
+					</div>
+					Trasa piechotą:
 					<input type="text" id="maxWalk">
 				</div>
 			</paper-toolbar>
@@ -131,7 +147,7 @@
 			<div drawer>
 			</div>
 			<div main>
-				<leaflet-map id="warsawMap" latitude="52.2297" longitude="21.0122" zoom="12">
+				<leaflet-map id="warsawMap" latitude="52.2297" longitude="21.0122" zoom="12" click="openMenu">
 				</leaflet-map>
 			</div>
 		</paper-drawer-panel> 
@@ -207,6 +223,17 @@
     setCurrentDate: function(){
     	setDate();
     },
+    swapStartStop: function(){
+    	var tmp = this.$.inputStart.value;
+    	this.$.inputStart.value = this.$.inputStop.value;
+		this.$.inputStop.value = tmp;
+    },
+    openMenu: function(){
+    	console.log("dd")
+    	var popup = L.popup().setContent('<p>Hello world!<br />This is a nice popup.</p>'); 
+    	var parent = document.getElementById('warsawMap').map;
+    	popup.openOn(parent);
+    },
 	ready: function(e){
 		this.addEventListener('complete', this.handleComplete);
 		//console.log(this.present);
@@ -233,7 +260,9 @@
   });
 
 	/*TODO: Autocomplete/search, ustawianie markerów po nacisnieciu myszą na mapie
-			Kontrolki do manipulacji stringiem OTP, Odbieranie i ładne wypisywanie odpowiedzi, oraz rysowanie linii między punktami*/
+			Kontrolki do manipulacji stringiem OTP{ALMOST DONE}, Odbieranie i ładne wypisywanie odpowiedzi, oraz rysowanie linii między punktami, geolocation, przycisk do zmiany startu ze stopem
+
+			Wtorek: Skończ produkować kontrolki, w tym zamiana startu ze stopem. Autocomplete i markery onClick*/
 	window.addEventListener('WebComponentsReady', function(e){
 		var map = document.getElementById("warsawMap").map;
 		//Podpisz te koordy, jako boundaries np.
@@ -242,6 +271,12 @@
    		bounds = L.latLngBounds(southWest, northEast);
     	map.setMaxBounds(bounds);
     	setDate();
+    	var popup = L.popup().setContent('<p>Hello world!<br />This is a nice popup.</p>'); 
+    	map.on('contextmenu', function(){
+    		var map2 = document.getElementById("warsawMap").map;
+    		console.log(map)
+    		popup.openOn(map2);
+    	});
 	}),
 
 	L.Icon.Default.imagePath = "../images";
