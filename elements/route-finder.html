@@ -27,6 +27,10 @@
 
 	<link rel="stylesheet" href="../ControlGeoCoder/Control.Geocoder.css" />
 	<script src="../ControlGeoCoder/Control.Geocoder.js"></script>
+
+	<link rel="stylesheet" href="../leaflet-search/leaflet-search.css" />
+	<script src="../leaflet-search/leaflet-search.js"></script>
+
 </head>
 
 <dom-module id="route-finder">
@@ -147,7 +151,7 @@
 			<div drawer>
 			</div>
 			<div main>
-				<leaflet-map id="warsawMap" latitude="52.2297" longitude="21.0122" zoom="12" click="openMenu">
+				<leaflet-map id="warsawMap" latitude="52.2297" longitude="21.0122" zoom="12">
 				</leaflet-map>
 			</div>
 		</paper-drawer-panel> 
@@ -177,11 +181,16 @@
 			startName,
 	 		stopName,
     		startPointCoords,
-	 		stopPointCoords;
-	 		
+	 		stopPointCoords,
+	 		bStart = false,
+	 		bStop = false;
+
 	 	if (/[a-z]/i.test(startAdress) === true){
-    		geocoder.geocode(startAdress, getCoords);}
+	 		bStart = true;
+    		geocoder.geocode(startAdress, getCoords);
+    	}
     	else{
+    		bStart = true;
     		var cordsArr = startAdress.split(",");
     		var toPass = [];
     			toPass[0] = {
@@ -191,8 +200,11 @@
     		getCoords(toPass);
     	}	
     	if (/[a-z]/i.test(stopAdress) === true){
-	 		geocoder.geocode(stopAdress, getCoords);}
+    		bStop = true;
+	 		geocoder.geocode(stopAdress, getCoords);
+	 	}
 	 	else{
+	 		bStop = true;
 	 		var cordsArr = stopAdress.split(",");
     		var toPass = [];
     		toPass[0] = {
@@ -204,16 +216,22 @@
 
 	 	function getCoords(results){
 	 		++functionInkoevd;
-	 		if(functionInkoevd === 1){    
+	 		if(bStart === true){
+	 			bStart = false;    
        			latLngStart = new L.LatLng(results[0].center.lat, results[0].center.lng);
        			startName = results[0].name;
        			startPointCoords = {coords:latLngStart, stopName:name};
 			}
-			else if(functionInkoevd === 2){
+			if(bStop === true){
+				bStop = false;
 				latLngStop = new L.LatLng(results[0].center.lat, results[0].center.lng);
        			stopName = results[0].name;
        			stopPointCoords = {coords:latLngStop, stopName:name};
-       			var start_stop = [startPointCoords, stopPointCoords];
+			}
+			if(functionInkoevd === 2)
+			{
+				var start_stop = [startPointCoords, stopPointCoords];
+				console.log(start_stop);
        			functionInkoevd = 0;
 				accumulateCoords(start_stop);
 			}
@@ -227,12 +245,6 @@
     	var tmp = this.$.inputStart.value;
     	this.$.inputStart.value = this.$.inputStop.value;
 		this.$.inputStop.value = tmp;
-    },
-    openMenu: function(){
-    	console.log("dd")
-    	var popup = L.popup().setContent('<p>Hello world!<br />This is a nice popup.</p>'); 
-    	var parent = document.getElementById('warsawMap').map;
-    	popup.openOn(parent);
     },
 	ready: function(e){
 		this.addEventListener('complete', this.handleComplete);
@@ -259,10 +271,10 @@
     });
   });
 
-	/*TODO: Autocomplete/search, ustawianie markerów po nacisnieciu myszą na mapie
-			Kontrolki do manipulacji stringiem OTP{ALMOST DONE}, Odbieranie i ładne wypisywanie odpowiedzi, oraz rysowanie linii między punktami, geolocation, przycisk do zmiany startu ze stopem
-
-			Wtorek: Skończ produkować kontrolki, w tym zamiana startu ze stopem. Autocomplete i markery onClick*/
+	/*TODO: Autocomplete/search, Odbieranie i ładne wypisywanie odpowiedzi, oraz rysowanie linii między punktami, geolocation
+			Sobota: Autocomplete
+			SetMarker powinien być na enter, po wybraniu lokalizacji.*/
+	var popup;	
 	window.addEventListener('WebComponentsReady', function(e){
 		var map = document.getElementById("warsawMap").map;
 		//Podpisz te koordy, jako boundaries np.
@@ -270,15 +282,28 @@
     	northEast = L.latLng(52.396134469429214, 21.430892944335938),
    		bounds = L.latLngBounds(southWest, northEast);
     	map.setMaxBounds(bounds);
+
     	setDate();
-    	var popup = L.popup().setContent('<p>Hello world!<br />This is a nice popup.</p>'); 
-    	map.on('contextmenu', function(){
-    		var map2 = document.getElementById("warsawMap").map;
-    		console.log(map)
-    		popup.openOn(map2);
+
+    	map.on('contextmenu', function(e){
+    		popup = L.popup()
+    		.setLatLng(e.latlng)
+    		.setContent("<div onClick=\"setMarkerFromClick\(\'start\'\)\">Przystanek startowy</div><div onClick=\"setMarkerFromClick\(\'stop\'\)\">Przystanek docelowy</div>")
+    		popup.openOn(map);
     	});
 	}),
-
+	
+	window.setMarkerFromClick = function(id){
+		var latlng = popup.getLatLng();
+		if(id === 'start'){
+			document.getElementById('inputStart').value = latlng.lat + "," + latlng.lng;
+		}
+		else if(id === 'stop'){
+			document.getElementById('inputStop').value = latlng.lat + "," + latlng.lng;
+		}
+		$(".leaflet-popup-close-button")[0].click();
+		setMarker(id, latlng);
+	}
 	L.Icon.Default.imagePath = "../images";
 
 	function setDate(){
@@ -308,9 +333,9 @@
 		1. Implementacja searcha i funkcji do któej zbiera wyniki
 		2. wyświetlanie wyników w podpowiedziach przy 'inpucie' i wyswiettla w panelu
 
-		a może zorbić buton show marker for adress, geosearch limitowany/priorytyzowany dla konkretnej lokacji to jest must. wtedy geocoding niech sobie hula, jeszcze tylko wyświetlanie mapy do  zadanych granic.*/
-	 	setMarker("start", coordsArray[1].coords);
-	  	setMarker("stop", coordsArray[0].coords);
+		geosearch limitowany/priorytyzowany dla konkretnej lokacji to jest must.*/
+	 	setMarker("start", coordsArray[0].coords);
+	  	setMarker("stop", coordsArray[1].coords);
 	 
 	 	sendToOTP(coordsArray);	
 	}
@@ -349,17 +374,21 @@
 		if(markers[id] != null)
 			markers[id].setLatLng(latLng);
 		else{
-			var marker = new L.marker(latLng, {id:id, draggable:'true'});
-			markers[id] = marker;
+			var marker;
 			if(id === 'start'){
+				var startIcon = new L.Icon({iconUrl: '../images/starterMarker.png', iconSize: [38, 35]});
+				marker = new L.marker(latLng, {id:id, icon:startIcon, draggable:'true'});
+				markers[id] = marker;
 				marker.on('dragend', function(){
-					var markerCoords = marker.getLatLng();
+					var markerCoords = markers['start'].getLatLng();
 					document.getElementById('inputStart').value = markerCoords.lat + "," + markerCoords.lng;
 				});
 			}
 			else if(id === 'stop'){
+				marker = new L.marker(latLng, {id:id, draggable:'true'});
+				markers[id] = marker;
 				marker.on('dragend', function(){
-					var markerCoords = marker.getLatLng();
+					var markerCoords = markers['stop'].getLatLng();
 					document.getElementById('inputStop').value = markerCoords.lat + "," + markerCoords.lng;
 				});
 			}
