@@ -175,68 +175,43 @@
     	var startAdress = this.$.inputStart.value;
     	var stopAdress = this.$.inputStop.value;
 
-    	var functionInkoevd = 0,
-			latLngStart,
-			latLngStop,
-			startName,
-	 		stopName,
-    		startPointCoords,
-	 		stopPointCoords,
-	 		bStart = false,
-	 		bStop = false;
-
 	 	if (/[a-z]/i.test(startAdress) === true){
-	 		bStart = true;
-    		geocoder.geocode(startAdress, getCoords);
+    		geocoder.geocode(startAdress, getCoordsStart);
     	}
     	else{
-    		bStart = true;
     		var cordsArr = startAdress.split(",");
     		var toPass = [];
     			toPass[0] = {
     			name: "",
     			center: L.latLng(cordsArr[0], cordsArr[1])
     		}
-    		getCoords(toPass);
+    		getCoordsStart(toPass);
     	}	
     	if (/[a-z]/i.test(stopAdress) === true){
-    		bStop = true;
-	 		geocoder.geocode(stopAdress, getCoords);
+	 		geocoder.geocode(stopAdress, getCoordsStop);
 	 	}
 	 	else{
-	 		bStop = true;
 	 		var cordsArr = stopAdress.split(",");
     		var toPass = [];
     		toPass[0] = {
     			name: "",
     			center: L.latLng(cordsArr[0], cordsArr[1])
     		}
-    		getCoords(toPass);
+    		getCoordsStop(toPass);
 	 	}
 
-	 	function getCoords(results){
-	 		++functionInkoevd;
-	 		if(bStart === true){
-	 			bStart = false;    
-       			latLngStart = new L.LatLng(results[0].center.lat, results[0].center.lng);
-       			startName = results[0].name;
-       			startPointCoords = {coords:latLngStart, stopName:name};
-			}
-			if(bStop === true){
-				bStop = false;
-				latLngStop = new L.LatLng(results[0].center.lat, results[0].center.lng);
-       			stopName = results[0].name;
-       			stopPointCoords = {coords:latLngStop, stopName:name};
-			}
-			if(functionInkoevd === 2)
-			{
-				var start_stop = [startPointCoords, stopPointCoords];
-				console.log(start_stop);
-       			functionInkoevd = 0;
-				accumulateCoords(start_stop);
-			}
-       		
-		}   	
+	 	function getCoordsStart(results){
+       		var latLngStart = new L.LatLng(results[0].center.lat, results[0].center.lng);
+       		var startName = results[0].name;
+       		var startPointCoords = {coords:latLngStart, stopName:name};
+       		accumulateCoords(startPointCoords, 0);
+		}
+		function getCoordsStop(results){   	
+			var latLngStop = new L.LatLng(results[0].center.lat, results[0].center.lng);
+       		var stopName = results[0].name;
+       		var stopPointCoords = {coords:latLngStop, stopName:name};
+       		accumulateCoords(stopPointCoords, 1);
+       	}
     },
     setCurrentDate: function(){
     	setDate();
@@ -327,17 +302,29 @@
 		document.getElementById('datePicker').value = today;
 	}
 
-	function accumulateCoords(coordsArray){
+	function accumulateCoords(coordsArray, iWhichOne){
 		/*Wyniki z searcha trzeba by przepuszczać przez własną funkcje i wyświetlać w podpwoeidziach do inputu, przy kliknięciu uruchamiać geocoder i rysować marker, a dopiero przy kliknięciu guzika szukać trasy, + przesuwanie i ustawianie markera za pomocą myszy.
 		Czyli:
 		1. Implementacja searcha i funkcji do któej zbiera wyniki
 		2. wyświetlanie wyników w podpowiedziach przy 'inpucie' i wyswiettla w panelu
 
 		geosearch limitowany/priorytyzowany dla konkretnej lokacji to jest must.*/
-	 	setMarker("start", coordsArray[0].coords);
-	  	setMarker("stop", coordsArray[1].coords);
-	 
-	 	sendToOTP(coordsArray);	
+		//stwórz zmienną w której będziesz dodawł przekazane do funkcji parametr np. 1+2
+		accumulateCoords.start_stop = accumulateCoords.start_stop || []
+		accumulateCoords.accumulationStatus = ++accumulateCoords.accumulationStatus || 1;
+		if(iWhichOne === 0){
+			accumulateCoords.start_stop[0] = coordsArray; 
+			setMarker("start", coordsArray.coords);
+		}
+		if(iWhichOne === 1){
+			accumulateCoords.start_stop[1] = coordsArray; 
+			setMarker("stop", coordsArray.coords);
+		}
+
+	 	if(accumulateCoords.accumulationStatus === 2){
+	 		sendToOTP(accumulateCoords.start_stop);	
+	 		accumulateCoords.accumulationStatus = 0;
+	 	}
 	}
 
 	function sendToOTP(start_stopCoords){	
@@ -353,32 +340,78 @@
 		var time = hours + ":" + document.getElementById('minutePicker').value + suffix;
 
 		var requestString = "http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=" + start_stopCoords[0].coords.lat + "," + start_stopCoords[0].coords.lng + "&toPlace=" + start_stopCoords[1].coords.lat + "," + start_stopCoords[1].coords.lng + "&time=" + time + "&date=" + date + "&mode=TRANSIT,WALK&maxWalkDistance=" + maxWalkDistance + "&arriveBy=" + arriveBy + "&wheelchair=false&locale=en";
-		console.log(requestString);
-		var respone;
+
+		var response;
     	var reqHandler = new XMLHttpRequest();
 
  		reqHandler.addEventListener("load", processRequest);
-    	//reqHandler.open('GET',requestString , true);
-    	//reqHandler.send();
+    	reqHandler.open('GET',requestString , true);
+    	reqHandler.send();
 
     	function processRequest(e){
     		if(reqHandler.status == 200){
-  				//respone = JSON.parse(reqHandler.responseText);  	
-  				console.log(reqHandler.responseXML);		
+  				response = JSON.parse(reqHandler.responseText); 
+  				printResults(response);
+  				console.log(response);
   			}
 		}
 	}
 
-	var markers ={};
+	function printResults(jResp){
+		//var d = new Date(0);
+		//d.setUTCSeconds(journeyDate);
+		var startStop = jResp.plan.from.name;
+		var endStop = jResp.plan.to.name;	
+
+		for(i = 0; i < jResp.plan.itineraries.length; ++i){
+			//pack all variables in some div/PolymerObject?
+			//So I could pre-define polymer-element,
+			//Call on it upon button press
+			//Fill it with variables upn reciving an answer.
+			//To do this, I need to know what kind, and how many variables there will be.
+			var travelDuration = jResp.plan.itineraries[i].duration;
+			var travelTimeEnd = jResp.plan.itineraries[i].endTime;
+			var travelTImeBegin = jResp.plan.itineraries[i].startTime;
+			var transfers = jResp.plan.itineraries[i].transfers;
+			var transitTime = jResp.plan.itineraries[i].transitTime;
+			var waitingTime = jResp.plan.itineraries[i].waitingTime;
+			var approxWalkTime = jResp.plan.itineraries[i].walkTime;
+			var walkDistance = jResp.plan.itineraries[i].walkDistance;
+			
+			for(j = 0; j < jResp.plan.itineraries[i].legs.length; ++j){
+				var phaseDistance = jResp.plan.itineraries[i].legs[j].distance;
+				var phaseTime = jResp.plan.itineraries[i].legs[j].duraton;
+				var phaseEndTime = jResp.plan.itineraries[i].legs[j].endTime;
+				var phaseStartTime = jResp.plan.itineraries[i].legs[j].startTime;
+				var route = jResp.plan.itineraries[i].legs[j].route;
+				var routeLongName = jResp.plan.itineraries[i].legs[j].routeLongName;
+				var mode = jResp.plan.itineraries[i].legs[j].mode;
+				var from = jResp.plan.itineraries[i].legs[j].from.name;
+				var fArrival = jResp.plan.itineraries[i].legs[j].from.arrival;
+				var fDeparture = jResp.plan.itineraries[i].legs[j].from.departure;
+				var fStopLat = jResp.plan.itineraries[i].legs[j].from.lat;
+				var fStopLng = jResp.plan.itineraries[i].legs[j].from.lon;
+				var to = jResp.plan.itineraries[i].legs[j].to.name;
+				var toArrival = jResp.plan.itineraries[i].legs[j].to.arrival;
+				var toDeparture = jResp.plan.itineraries[i].legs[j].to.departure;
+				var toStopLat = jResp.plan.itineraries[i].legs[j].to.lat;
+				var toStopLng = jResp.plan.itineraries[i].legs[j].to.lon;
+				console.log(from + " i= " + i + " j= " + j); 
+			}
+		}	
+		//console.log(d);
+	}
+
 	function setMarker(id, latLng){
-		if(markers[id] != null)
-			markers[id].setLatLng(latLng);
+		setMarker.markers = setMarker.markers || {};
+		if(setMarker.markers[id] != null)
+			setMarker.markers[id].setLatLng(latLng);
 		else{
 			var marker;
 			if(id === 'start'){
 				var startIcon = new L.Icon({iconUrl: '../images/starterMarker.png', iconSize: [38, 35]});
 				marker = new L.marker(latLng, {id:id, icon:startIcon, draggable:'true'});
-				markers[id] = marker;
+				setMarker.markers[id] = marker;
 				marker.on('dragend', function(){
 					var markerCoords = markers['start'].getLatLng();
 					document.getElementById('inputStart').value = markerCoords.lat + "," + markerCoords.lng;
@@ -386,7 +419,7 @@
 			}
 			else if(id === 'stop'){
 				marker = new L.marker(latLng, {id:id, draggable:'true'});
-				markers[id] = marker;
+				setMarker.markers[id] = marker;
 				marker.on('dragend', function(){
 					var markerCoords = markers['stop'].getLatLng();
 					document.getElementById('inputStop').value = markerCoords.lat + "," + markerCoords.lng;
@@ -399,7 +432,6 @@
 
 /*
 DEBUG STRING:
-"http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=52.24188683382461,20.994014739990234&toPlace=52.19508676858302,21.002769470214844&time=2:44pm&date=02-04-2016&mode=TRANSIT,WALK&maxWalkDistance=804.672&arriveBy=false&wheelchair=false&locale=en"
 
 http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=52.1836118,20.9790984&toPlace=52.2458726,20.9402570333431&time=2:44pm&date=02-04-2016&mode=TRANSIT,WALK&maxWalkDistance=804.672&arriveBy=false&wheelchair=false&locale=en
 */	
