@@ -413,7 +413,7 @@
 				marker = new L.marker(latLng, {id:id, icon:startIcon, draggable:'true'});
 				setMarker.markers[id] = marker;
 				marker.on('dragend', function(){
-					var markerCoords = markers['start'].getLatLng();
+					var markerCoords = setMarker.markers['start'].getLatLng();
 					document.getElementById('inputStart').value = markerCoords.lat + "," + markerCoords.lng;
 				});
 			}
@@ -421,7 +421,7 @@
 				marker = new L.marker(latLng, {id:id, draggable:'true'});
 				setMarker.markers[id] = marker;
 				marker.on('dragend', function(){
-					var markerCoords = markers['stop'].getLatLng();
+					var markerCoords = setMarker.markers['stop'].getLatLng();
 					document.getElementById('inputStop').value = markerCoords.lat + "," + markerCoords.lng;
 				});
 			}
