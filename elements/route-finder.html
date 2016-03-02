@@ -16,7 +16,9 @@
 	<link href="../bower_components/leaflet-map/leaflet-map.html" rel="import">
 	<link href="../bower_components/paper-radio-group/paper-radio-group.html" rel="import">
 	<link href="../bower_components/paper-radio-button/paper-radio-button.html" rel="import">
-
+	<link href="../bower_components/paper-card/paper-card.html" rel="import">
+	<link href="../bower_components/Sortable/Sortable.html" rel="import">
+	
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
   	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
   	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -30,97 +32,114 @@
 
 	<link rel="stylesheet" href="../leaflet-search/leaflet-search.css" />
 	<script src="../leaflet-search/leaflet-search.js"></script>
-
 </head>
 
 <dom-module id="route-finder">
 	<style>
-	#DirectionsEntry {
-		margin-top: 15px;
-		padding-top: 50px;
-		max-width: 180px;
-		max-height: 200px;
-	}
-	#JourneyOptions {
-		width: 120px;
-		margin-top: 30px;
-	}
-	#hourPicker, #minutePicker{
-		width: 25px;
-	}
-	#datePicker{
-		width: 75px;
-		margin-top: 15px;
-	}
-	#getToday{
-		background-color: 5059FF;
-		font-size: 12px;
-		margin-top: 5px;
-	}
-	#swap{
-		background-color: 5059FF;
-		max-width: 10px;
-		font-size: 10px;
-		margin-top: 5px;
-	}
-	.main-panel {
-		background-color: #eee;
-		height: 100vh;
-		overflow-y: hidden;
-	}
-	#mainButton{
-		margin-top: 40px;
-		width: 40;
-		height: 30px;
-	}
-	#internal{
-		width:180px;
-	}
-	#maxWalk{
-		width: 55px;
-	}
-	paper-radio-group  > * {
-  		padding: 3px;
-	}
-	paper-radio-button {
-    	white-space: nowrap;
-    	cursor: pointer;
-	}
-	paper-material {
-		background-color: #fff;
-		max-width: 640px;
-		width: 95%;
-		margin: 25px auto;
-		position: relative;
-	}
-	paper-toolbar {
-		color: black;
-		background: #C7EDFF;
-		float: left;
-		width: 100%;
-    	height: 150px;
-	}
-	paper-input.route-finder {
-    	height: 40;
-    	margin-bottom: 5px;
-    	max-width: 140px;
-	}
-	paper-input{
-		max-width: 140px;
-	}
-	paper-header-panel{
-		height: 151px;
-	}
-	paper-drawer-panel{
-		height: 100%;
-		position: relative;
-		--paper-drawer-panel-main-container: {
-    		background-color: C7EDFF;
-    	};
-    	--paper-drawer-panel-left-drawer-container: {
-    		background-color: #91DBFF;
-  		};
-	}
+		#DirectionsEntry {
+			margin-top: 15px;
+			padding-top: 50px;
+			max-width: 180px;
+			max-height: 200px;
+		}
+		#JourneyOptions {
+			width: 120px;
+			margin-top: 30px;
+		}
+		#jTable{
+			margin-left: 20px;
+			margin-top: 40px;
+		}
+		#hourPicker, #minutePicker{
+			width: 25px;
+		}
+		#datePicker{
+			width: 75px;
+			margin-top: 15px;
+		}
+		#getToday{
+			background-color: 5059FF;
+			font-size: 12px;
+			margin-top: 5px;
+		}
+		#swap{
+			background-color: 5059FF;
+			max-width: 10px;
+			font-size: 10px;
+			margin-top: 5px;
+		}
+		.main-panel {
+			background-color: #eee;
+			height: 100vh;
+			overflow-y: hidden;
+		}
+		#mainButton{
+			margin-top: 40px;
+			width: 40;
+			height: 30px;
+		}
+		#internal{
+			width:180px;
+		}
+		#maxWalk{
+			width: 55px;
+		}
+		#stepAdder{
+			background-color: green;
+			height: 25px;
+			margin-top: 15px;
+			min-width: 35px;
+			padding: 0px;
+		}
+		#journeyAdder{
+			background-color: grey;
+			height: 25px;
+			margin-top: 15px;
+			min-width: 35px;
+			padding: 0px;
+		}
+		paper-radio-group  > * {
+			padding: 3px;
+		}
+		paper-radio-button {
+			white-space: nowrap;
+			cursor: pointer;
+		}
+		paper-material {
+			background-color: #fff;
+			max-width: 640px;
+			width: 95%;
+			margin: 25px auto;
+			position: relative;
+		}
+		paper-toolbar {
+			color: black;
+			background: #C7EDFF;
+			float: left;
+			width: 100%;
+			height: 150px;
+		}
+		paper-input.route-finder {
+			height: 40;
+			margin-bottom: 5px;
+			max-width: 140px;
+		}
+		paper-input{
+			max-width: 140px;
+		}
+		paper-header-panel{
+			height: 151px;
+		}
+		paper-drawer-panel{
+			height: 100%;
+			position: relative;
+			--paper-drawer-panel-main-container: {
+				background-color: C7EDFF;
+			};
+			--paper-drawer-panel-left-drawer-container: {
+				background-color: #91DBFF;
+			};
+		}
 	</style>
   
 	<template>
@@ -145,10 +164,38 @@
 					Trasa piechotą:
 					<input type="text" id="maxWalk">
 				</div>
+				<template id="journeyTableT" is="dom-repeat" items="{{jTables}}">	
+				<div id="{{item.jTid}}">
+					<div id="jTable">
+						<template id="journeyTableT" is="dom-repeat" items="{{journeyStops}}">
+    						<paper-input id="{{item.jID}}" value="{{item.jID}}"></paper-input>
+    					</template>
+    				</div>	
+    				<paper-button raised id="stepAdder" on-click="addStep"> 
+    					<iron-icon id"addStepIcon" icon="add"></iron-icon>
+    				</paper-button>
+				</div>
+				</template>
+				<div id="addTable">
+					<paper-button raised id="journeyAdder" on-click="addTable"> 
+    					<iron-icon id"addStepIcon" icon="add"></iron-icon>
+				</div>    					
 			</paper-toolbar>
 		</paper-header-panel>
 		<paper-drawer-panel>
 			<div drawer>
+				<paper-card heading="Card Title">
+ 	 				<div class="card-content">Some content</div>
+  					<div class="card-actions">
+    					<paper-button>Some action</paper-button>
+  					</div>
+				</paper-card>
+				<paper-card heading="Card Title">
+  					<div class="card-content">Some content</div>
+  					<div class="card-actions">
+    					<paper-button>Some action</paper-button>
+  					</div>
+				</paper-card>
 			</div>
 			<div main>
 				<leaflet-map id="warsawMap" latitude="52.2297" longitude="21.0122" zoom="12">
@@ -166,9 +213,33 @@
     	startPointSet: {
     		type: Boolean,
     		value: true
+    	},
+    	jTables: {
+    		type: Array,
+    		value:[{jTid:"jTid0"}, {jTid:"jTid1"}]
+    	},
+    	journeyStops: {
+    		type: Array,
+    		value:[{jID:0},{jID:1}]
+    	},
+    	buttonsIDs: {
+    		type: Array,
+    		value:[{bID:0}{bID:1}]
     	}
+    	/*
+    	 * Potrzebuję aby każdy button odpowiadał za swoją tabelę, czyli addStep musiałby ściągać 
+    	 * idTabeli i tylko dla tej tabeli zwiększać wartość, albo z każdą nową wartością wpisywać
+    	 * nowy property, albo zrobić property 2DArray i  wiersze to oddzielne tabele, a kolumny to
+    	 * kolejne przystanki.
+    	 */
     },
 
+    addStep: function(){
+    	this.push('journeyStops', {jID:2});
+    },
+    addTable: function(){
+    	this.push('jTables', {jTid:2});
+    },
     forwardRequest: function(){
     	//Dać możliwość wprowadzania koordynatorów zamiast nazw, tylok jeżeli będzie poza jakimśzakresem, to wyrzucać wyjatek, albo mieć to w dupie i czekać aż OTP nie znajdzie połączenia.
     	var geocoder = new L.Control.Geocoder.Nominatim();
@@ -212,7 +283,91 @@
        		var stopPointCoords = {coords:latLngStop, stopName:name};
        		accumulateCoords(stopPointCoords, 1);
        	}
+
+       	function accumulateCoords(coordsArray, iWhichOne){
+       		accumulateCoords.start_stop = accumulateCoords.start_stop || []
+			accumulateCoords.accumulationStatus = ++accumulateCoords.accumulationStatus || 1;
+			if(iWhichOne === 0){
+				accumulateCoords.start_stop[0] = coordsArray; 
+				setMarker("start", coordsArray.coords);
+			}
+			if(iWhichOne === 1){
+				accumulateCoords.start_stop[1] = coordsArray; 
+				setMarker("stop", coordsArray.coords);
+			}
+
+	 		if(accumulateCoords.accumulationStatus === 2){
+	 			accumulateCoords.accumulationStatus = 0;
+	 			sendToOTP(accumulateCoords.start_stop);	
+	 		}
+       	}
     },
+
+	/*{Wyniki z searcha trzeba by przepuszczać przez własną funkcje i wyświetlać w podpwoeidziach do 
+		inputu, przy kliknięciu uruchamiać geocoder i rysować marker, a dopiero przy kliknięciu guzika 
+		szukać trasy, + przesuwanie i ustawianie markera za pomocą myszy.
+		Czyli:
+		1. Implementacja searcha i funkcji do któej zbiera wyniki
+		2. wyświetlanie wyników w podpowiedziach przy 'inpucie' i wyswiettla w panelu
+
+		geosearch limitowany/priorytyzowany dla konkretnej lokacji to jest must./
+		//stwórz zmienną w której będziesz dodawł przekazane do funkcji parametr np. 1+2
+		accumulateCoords.start_stop = accumulateCoords.start_stop || []
+		accumulateCoords.accumulationStatus = ++accumulateCoords.accumulationStatus || 1;
+	},*/
+
+	printResults: function(jResp){
+		//var d = new Date(0);
+		//d.setUTCSeconds(journeyDate);
+		var startStop = jResp.plan.from.name;
+		var endStop = jResp.plan.to.name;
+
+		for(i = 0; i < jResp.plan.itineraries.length; ++i){
+			//pack all variables in some div/PolymerObject?
+			//So I could pre-define polymer-element,
+			//Call on it upon button press
+			//Fill it with variables upn reciving an answer.
+			//To do this, I need to know what kind, and how many variables there will be.
+			/*
+			* Tworzyć za pomocą dom-ifa karty/nagłówki
+			* Karto-nagłówki winny być osobnymi polymero-elementami
+			* Pakowanie danych do tych elementów: Przesłać obiekt z danymi z tej funkcji
+			* Np. funkcja 'setParametres' która przyjmuje obiekt i później wszystko ładnie uzupełnia.
+			* Okej, to na dom-if potrzebna jest zmienna, Czy da się ją ustawiać spoza polymerowego scopa?
+			* Czy da się wywołać funkcje(tą) spoza polymero-scopa do elementu w dom-if? 
+			*/
+			var travelDuration = jResp.plan.itineraries[i].duration;
+			var travelTimeEnd = jResp.plan.itineraries[i].endTime;
+			var travelTImeBegin = jResp.plan.itineraries[i].startTime;
+			var transfers = jResp.plan.itineraries[i].transfers;
+			var transitTime = jResp.plan.itineraries[i].transitTime;
+			var waitingTime = jResp.plan.itineraries[i].waitingTime;
+			var approxWalkTime = jResp.plan.itineraries[i].walkTime;
+			var walkDistance = jResp.plan.itineraries[i].walkDistance;
+			
+			for(j = 0; j < jResp.plan.itineraries[i].legs.length; ++j){
+				var phaseDistance = jResp.plan.itineraries[i].legs[j].distance;
+				var phaseTime = jResp.plan.itineraries[i].legs[j].duraton;
+				var phaseEndTime = jResp.plan.itineraries[i].legs[j].endTime;
+				var phaseStartTime = jResp.plan.itineraries[i].legs[j].startTime;
+				var route = jResp.plan.itineraries[i].legs[j].route;
+				var routeLongName = jResp.plan.itineraries[i].legs[j].routeLongName;
+				var mode = jResp.plan.itineraries[i].legs[j].mode;
+				var from = jResp.plan.itineraries[i].legs[j].from.name;
+				var fArrival = jResp.plan.itineraries[i].legs[j].from.arrival;
+				var fDeparture = jResp.plan.itineraries[i].legs[j].from.departure;
+				var fStopLat = jResp.plan.itineraries[i].legs[j].from.lat;
+				var fStopLng = jResp.plan.itineraries[i].legs[j].from.lon;
+				var to = jResp.plan.itineraries[i].legs[j].to.name;
+				var toArrival = jResp.plan.itineraries[i].legs[j].to.arrival;
+				var toDeparture = jResp.plan.itineraries[i].legs[j].to.departure;
+				var toStopLat = jResp.plan.itineraries[i].legs[j].to.lat;
+				var toStopLng = jResp.plan.itineraries[i].legs[j].to.lon;
+				console.log(from + " i= " + i + " j= " + j); 
+			}
+		}	
+	},
+
     setCurrentDate: function(){
     	setDate();
     },
@@ -221,15 +376,8 @@
     	this.$.inputStart.value = this.$.inputStop.value;
 		this.$.inputStop.value = tmp;
     },
-	ready: function(e){
-		this.addEventListener('complete', this.handleComplete);
-		//console.log(this.present);
-		this.addEventListener('presence', presChange);
 
-		function presChange(e){
-			var pres = this.present.pop()
-			this.$.here.innerHTML = pres.occupancy;
-		}
+	ready: function(e){
 		window.onresize = function(event) {
 		};
 		window.onresize();
@@ -247,9 +395,11 @@
   });
 
 	/*TODO: Autocomplete/search, Odbieranie i ładne wypisywanie odpowiedzi, oraz rysowanie linii między punktami, geolocation
-			Sobota: Autocomplete
 			SetMarker powinien być na enter, po wybraniu lokalizacji.*/
-	var popup;	
+	var popup;
+
+
+
 	window.addEventListener('WebComponentsReady', function(e){
 		var map = document.getElementById("warsawMap").map;
 		//Podpisz te koordy, jako boundaries np.
@@ -266,6 +416,13 @@
     		.setContent("<div onClick=\"setMarkerFromClick\(\'start\'\)\">Przystanek startowy</div><div onClick=\"setMarkerFromClick\(\'stop\'\)\">Przystanek docelowy</div>")
     		popup.openOn(map);
     	});
+
+    	var el = document.getElementById('jTable');
+		var sortable = Sortable.create(el, {
+			onMove: function (evt) {
+				console.log(evt.dragged.id);
+			}
+		});	
 	}),
 	
 	window.setMarkerFromClick = function(id){
@@ -302,29 +459,32 @@
 		document.getElementById('datePicker').value = today;
 	}
 
-	function accumulateCoords(coordsArray, iWhichOne){
-		/*Wyniki z searcha trzeba by przepuszczać przez własną funkcje i wyświetlać w podpwoeidziach do inputu, przy kliknięciu uruchamiać geocoder i rysować marker, a dopiero przy kliknięciu guzika szukać trasy, + przesuwanie i ustawianie markera za pomocą myszy.
-		Czyli:
-		1. Implementacja searcha i funkcji do któej zbiera wyniki
-		2. wyświetlanie wyników w podpowiedziach przy 'inpucie' i wyswiettla w panelu
-
-		geosearch limitowany/priorytyzowany dla konkretnej lokacji to jest must.*/
-		//stwórz zmienną w której będziesz dodawł przekazane do funkcji parametr np. 1+2
-		accumulateCoords.start_stop = accumulateCoords.start_stop || []
-		accumulateCoords.accumulationStatus = ++accumulateCoords.accumulationStatus || 1;
-		if(iWhichOne === 0){
-			accumulateCoords.start_stop[0] = coordsArray; 
-			setMarker("start", coordsArray.coords);
+	function setMarker(id, latLng){
+		setMarker.markers = setMarker.markers || {};
+		if(setMarker.markers[id] != null)
+			setMarker.markers[id].setLatLng(latLng);
+		else{
+			var marker;
+			if(id === 'start'){
+				var startIcon = new L.Icon({iconUrl: '../images/starterMarker.png', iconSize: [38, 35]});
+				marker = new L.marker(latLng, {id:id, icon:startIcon, draggable:'true'});
+				setMarker.markers[id] = marker;
+				marker.on('dragend', function(){
+					var markerCoords = setMarker.markers['start'].getLatLng();
+					document.getElementById('inputStart').value = markerCoords.lat + "," + markerCoords.lng;
+				});
+			}
+			else if(id === 'stop'){
+				marker = new L.marker(latLng, {id:id, draggable:'true'});
+				setMarker.markers[id] = marker;
+				marker.on('dragend', function(){
+					var markerCoords = setMarker.markers['stop'].getLatLng();
+					document.getElementById('inputStop').value = markerCoords.lat + "," + markerCoords.lng;
+				});
+			}
+			var parent = document.getElementById('warsawMap').map;
+			parent.addLayer(marker);
 		}
-		if(iWhichOne === 1){
-			accumulateCoords.start_stop[1] = coordsArray; 
-			setMarker("stop", coordsArray.coords);
-		}
-
-	 	if(accumulateCoords.accumulationStatus === 2){
-	 		sendToOTP(accumulateCoords.start_stop);	
-	 		accumulateCoords.accumulationStatus = 0;
-	 	}
 	}
 
 	function sendToOTP(start_stopCoords){	
@@ -351,82 +511,9 @@
     	function processRequest(e){
     		if(reqHandler.status == 200){
   				response = JSON.parse(reqHandler.responseText); 
-  				printResults(response);
+  				//printResults(response);
   				console.log(response);
   			}
-		}
-	}
-
-	function printResults(jResp){
-		//var d = new Date(0);
-		//d.setUTCSeconds(journeyDate);
-		var startStop = jResp.plan.from.name;
-		var endStop = jResp.plan.to.name;	
-
-		for(i = 0; i < jResp.plan.itineraries.length; ++i){
-			//pack all variables in some div/PolymerObject?
-			//So I could pre-define polymer-element,
-			//Call on it upon button press
-			//Fill it with variables upn reciving an answer.
-			//To do this, I need to know what kind, and how many variables there will be.
-			var travelDuration = jResp.plan.itineraries[i].duration;
-			var travelTimeEnd = jResp.plan.itineraries[i].endTime;
-			var travelTImeBegin = jResp.plan.itineraries[i].startTime;
-			var transfers = jResp.plan.itineraries[i].transfers;
-			var transitTime = jResp.plan.itineraries[i].transitTime;
-			var waitingTime = jResp.plan.itineraries[i].waitingTime;
-			var approxWalkTime = jResp.plan.itineraries[i].walkTime;
-			var walkDistance = jResp.plan.itineraries[i].walkDistance;
-			
-			for(j = 0; j < jResp.plan.itineraries[i].legs.length; ++j){
-				var phaseDistance = jResp.plan.itineraries[i].legs[j].distance;
-				var phaseTime = jResp.plan.itineraries[i].legs[j].duraton;
-				var phaseEndTime = jResp.plan.itineraries[i].legs[j].endTime;
-				var phaseStartTime = jResp.plan.itineraries[i].legs[j].startTime;
-				var route = jResp.plan.itineraries[i].legs[j].route;
-				var routeLongName = jResp.plan.itineraries[i].legs[j].routeLongName;
-				var mode = jResp.plan.itineraries[i].legs[j].mode;
-				var from = jResp.plan.itineraries[i].legs[j].from.name;
-				var fArrival = jResp.plan.itineraries[i].legs[j].from.arrival;
-				var fDeparture = jResp.plan.itineraries[i].legs[j].from.departure;
-				var fStopLat = jResp.plan.itineraries[i].legs[j].from.lat;
-				var fStopLng = jResp.plan.itineraries[i].legs[j].from.lon;
-				var to = jResp.plan.itineraries[i].legs[j].to.name;
-				var toArrival = jResp.plan.itineraries[i].legs[j].to.arrival;
-				var toDeparture = jResp.plan.itineraries[i].legs[j].to.departure;
-				var toStopLat = jResp.plan.itineraries[i].legs[j].to.lat;
-				var toStopLng = jResp.plan.itineraries[i].legs[j].to.lon;
-				console.log(from + " i= " + i + " j= " + j); 
-			}
-		}	
-		//console.log(d);
-	}
-
-	function setMarker(id, latLng){
-		setMarker.markers = setMarker.markers || {};
-		if(setMarker.markers[id] != null)
-			setMarker.markers[id].setLatLng(latLng);
-		else{
-			var marker;
-			if(id === 'start'){
-				var startIcon = new L.Icon({iconUrl: '../images/starterMarker.png', iconSize: [38, 35]});
-				marker = new L.marker(latLng, {id:id, icon:startIcon, draggable:'true'});
-				setMarker.markers[id] = marker;
-				marker.on('dragend', function(){
-					var markerCoords = setMarker.markers['start'].getLatLng();
-					document.getElementById('inputStart').value = markerCoords.lat + "," + markerCoords.lng;
-				});
-			}
-			else if(id === 'stop'){
-				marker = new L.marker(latLng, {id:id, draggable:'true'});
-				setMarker.markers[id] = marker;
-				marker.on('dragend', function(){
-					var markerCoords = setMarker.markers['stop'].getLatLng();
-					document.getElementById('inputStop').value = markerCoords.lat + "," + markerCoords.lng;
-				});
-			}
-			var parent = document.getElementById('warsawMap').map;
-			parent.addLayer(marker);
 		}
 	}
 
