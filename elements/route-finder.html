@@ -19,6 +19,8 @@
 	<link href="../bower_components/paper-card/paper-card.html" rel="import">
 	<link href="../bower_components/Sortable/Sortable.html" rel="import">
 	
+	<link href="journey-table.html" rel="import">
+
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
   	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
   	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -39,7 +41,6 @@
 		#DirectionsEntry {
 			margin-top: 15px;
 			padding-top: 50px;
-			max-width: 180px;
 			max-height: 200px;
 		}
 		#JourneyOptions {
@@ -73,7 +74,7 @@
 			height: 100vh;
 			overflow-y: hidden;
 		}
-		#mainButton{
+		.mainButton{
 			margin-top: 40px;
 			width: 40;
 			height: 30px;
@@ -146,39 +147,15 @@
 		<paper-header-panel>
 			<paper-toolbar elevation="2">
 				<div id="DirectionsEntry" class="top">
-					<paper-input id="inputStart" label="From" value="Newelska 6"></paper-input>
-					<paper-input id="inputStop" label="To" value="Opaczewska 34"></paper-input>
-					<input type="text" id="datePicker">
-					<input type="text" id="hourPicker">:<input type="text" id="minutePicker">
-					<paper-radio-group selected="Departure" id="selection">
-						<paper-radio-button name="Departure">Odjazd</paper-radio-button>
-						<paper-radio-button name="Arrival">Przyjazd</paper-radio-button>
-					</paper-radio-group>
-				</div>
-				<div id="JourneyOptions">
-					<paper-fab id="mainButton" icon="icons:reply" on-click="forwardRequest"></paper-fab>
-					<div id ="internal">
-						<paper-button raised id="swap" on-click="swapStartStop"><></paper-button>
-						<paper-button raised id="getToday" on-click="setCurrentDate">Now</paper-button>
-					</div>
-					Trasa piechotą:
-					<input type="text" id="maxWalk">
-				</div>
+
 				<template id="journeyTableT" is="dom-repeat" items="{{jTables}}">	
-				<div id="{{item.jTid}}">
-					<div id="jTable">
-						<template id="journeyTableT" is="dom-repeat" items="{{journeyStops}}">
-    						<paper-input id="{{item.jID}}" value="{{item.jID}}"></paper-input>
-    					</template>
-    				</div>	
-    				<paper-button raised id="stepAdder" on-click="addStep"> 
-    					<iron-icon id"addStepIcon" icon="add"></iron-icon>
-    				</paper-button>
-				</div>
+					<journey-table id="{{item.htmlID}}"></journey-table>
+					<paper-fab id="{{item.mainButtonID}}" icon="icons:reply" on-click="forwardRequest" journey-number$="{{item.num}}" class="mainButton"></paper-fab>
 				</template>
-				<div id="addTable">
+			</div>
+				<div id="addTableDiv">
 					<paper-button raised id="journeyAdder" on-click="addTable"> 
-    					<iron-icon id"addStepIcon" icon="add"></iron-icon>
+    					<iron-icon id"addStepIcon" icon="add"></iron-icon></paper-button>
 				</div>    					
 			</paper-toolbar>
 		</paper-header-panel>
@@ -204,7 +181,6 @@
 		</paper-drawer-panel> 
 	</template>
 
-
 <script>
   Polymer({
     is: "route-finder",
@@ -216,16 +192,8 @@
     	},
     	jTables: {
     		type: Array,
-    		value:[{jTid:"jTid0"}, {jTid:"jTid1"}]
+    		value:[{htmlID: "jTid0", num:  0, mainButtonID: "mB0"}]
     	},
-    	journeyStops: {
-    		type: Array,
-    		value:[{jID:0},{jID:1}]
-    	},
-    	buttonsIDs: {
-    		type: Array,
-    		value:[{bID:0}{bID:1}]
-    	}
     	/*
     	 * Potrzebuję aby każdy button odpowiadał za swoją tabelę, czyli addStep musiałby ściągać 
     	 * idTabeli i tylko dla tej tabeli zwiększać wartość, albo z każdą nową wartością wpisywać
@@ -234,15 +202,41 @@
     	 */
     },
 
-    addStep: function(){
-    	this.push('journeyStops', {jID:2});
-    },
     addTable: function(){
-    	this.push('jTables', {jTid:2});
+    	//Nadawaj oddzielnie properties dla każdego nowego journey-table
+    	var lastItem = this.jTables[this.jTables.length-1];
+    	lastItem = 1 + lastItem.num;
+    	var newID = "jTid" + lastItem;
+    	var newBID = "mB" + lastItem;
+    	this.push('jTables', {htmlID: newID ,num: lastItem, mainButtonID: newBID});
     },
-    forwardRequest: function(){
+    forwardRequest: function(e){
     	//Dać możliwość wprowadzania koordynatorów zamiast nazw, tylok jeżeli będzie poza jakimśzakresem, to wyrzucać wyjatek, albo mieć to w dupie i czekać aż OTP nie znajdzie połączenia.
-    	var geocoder = new L.Control.Geocoder.Nominatim();
+    	//var geocoder = new L.Control.Geocoder.Nominatim();
+    	if(e.target.id === "icon"){
+    		var jNumber = e.target.parentNode.getAttribute('journey-number');
+    		//console.log(e.target.parentNode.id);
+    	}
+    	else
+    		var jNumber = e.target.getAttribute('journey-number');
+
+    	var chTabID = "#jTid" + jNumber;
+    	// Brać element "journey-table", a potem brać childa o danym ID? 
+    	//Chyba jednak rozwiązanie nr. jeden. A może jest jeszcze jakieś?
+    	// Jeżeli mogę dostać się do propertisów journey-table z poziomu route-findera, to może mogę łatwo stowrzyć array z ID elementów i wtedy chyba byłoby szybicej?
+    	//Lepiej(?): Po kliknięciu na button zwraca cały journey-table i z tego czytamy properties/input-id, tylko przycisk musiały obsługiwać funckje z tego elementu.
+    	//this.$$(chTabID);
+    	//console.log(document.getElementById(chTabID));
+    	var choosenTab = document.getElementById(chTabID);
+    	//console.log(choosenTab.inputStop0);
+    	var inputS = this.$$(chTabID).querySelector('#inputStop0');
+
+    	console.log(inputS.value);
+    	//var startAdress = this.$.startElemName.value;
+    	var stopAdress = this.$.inputStop.value;
+
+    	/*
+    	switch()
     	var startAdress = this.$.inputStart.value;
     	var stopAdress = this.$.inputStop.value;
 
@@ -269,7 +263,7 @@
     			center: L.latLng(cordsArr[0], cordsArr[1])
     		}
     		getCoordsStop(toPass);
-	 	}
+	 	}*/
 
 	 	function getCoordsStart(results){
        		var latLngStart = new L.LatLng(results[0].center.lat, results[0].center.lng);
@@ -416,13 +410,6 @@
     		.setContent("<div onClick=\"setMarkerFromClick\(\'start\'\)\">Przystanek startowy</div><div onClick=\"setMarkerFromClick\(\'stop\'\)\">Przystanek docelowy</div>")
     		popup.openOn(map);
     	});
-
-    	var el = document.getElementById('jTable');
-		var sortable = Sortable.create(el, {
-			onMove: function (evt) {
-				console.log(evt.dragged.id);
-			}
-		});	
 	}),
 	
 	window.setMarkerFromClick = function(id){
@@ -454,9 +441,9 @@
 			minutes = '0' + minutes;
 
 		today = mm+'/'+dd+'/'+yyyy;
-		document.getElementById('hourPicker').value = hours;
-		document.getElementById('minutePicker').value = minutes;
-		document.getElementById('datePicker').value = today;
+		//document.getElementById('hourPicker').value = hours;
+		//document.getElementById('minutePicker').value = minutes;
+		//document.getElementById('datePicker').value = today;
 	}
 
 	function setMarker(id, latLng){
