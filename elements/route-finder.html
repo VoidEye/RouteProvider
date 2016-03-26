@@ -82,9 +82,6 @@
 		#internal{
 			width:180px;
 		}
-		#maxWalk{
-			width: 55px;
-		}
 		#stepAdder{
 			background-color: green;
 			height: 25px;
@@ -98,13 +95,6 @@
 			margin-top: 15px;
 			min-width: 35px;
 			padding: 0px;
-		}
-		paper-radio-group  > * {
-			padding: 3px;
-		}
-		paper-radio-button {
-			white-space: nowrap;
-			cursor: pointer;
 		}
 		paper-material {
 			background-color: #fff;
@@ -362,9 +352,6 @@
 		}	
 	},
 
-    setCurrentDate: function(){
-    	setDate();
-    },
     swapStartStop: function(){
     	var tmp = this.$.inputStart.value;
     	this.$.inputStart.value = this.$.inputStop.value;
@@ -378,15 +365,7 @@
 	},
   });
 
-  $(function(){
-    $("#datePicker").datepicker({
-    	showButtonPanel: true,
-   		dateFormat: "mm/dd/yy",
-    	beforeShow: function(){    
-           $(".ui-datepicker").css('font-size', 12) 
-    	}
-    });
-  });
+
 
 	/*TODO: Autocomplete/search, Odbieranie i ładne wypisywanie odpowiedzi, oraz rysowanie linii między punktami, geolocation
 			SetMarker powinien być na enter, po wybraniu lokalizacji.*/
@@ -402,12 +381,13 @@
    		bounds = L.latLngBounds(southWest, northEast);
     	map.setMaxBounds(bounds);
 
-    	setDate();
+    	
 
     	map.on('contextmenu', function(e){
+    		var popUpContent = "<div onClick=\"setMarkerFromClick\(\'start\'\)\">Przystanek startowy</div><div onClick=\"setMarkerFromClick\(\'stop\'\)\">Przystanek docelowy</div>";
     		popup = L.popup()
     		.setLatLng(e.latlng)
-    		.setContent("<div onClick=\"setMarkerFromClick\(\'start\'\)\">Przystanek startowy</div><div onClick=\"setMarkerFromClick\(\'stop\'\)\">Przystanek docelowy</div>")
+    		.setContent(popUpContent);
     		popup.openOn(map);
     	});
 	}),
@@ -425,26 +405,7 @@
 	}
 	L.Icon.Default.imagePath = "../images";
 
-	function setDate(){
-		var today = new Date();
-    	var hours = today.getHours();
-    	var minutes = today.getMinutes();
-		var dd = today.getDate();
-		var mm = today.getMonth()+1; //January is 0!
-		var yyyy = today.getFullYear();
 
-		if(dd<10)
-    		dd = '0'+ dd
-		if(mm<10)
-    		mm = '0' + mm
-		if(minutes < 10)
-			minutes = '0' + minutes;
-
-		today = mm+'/'+dd+'/'+yyyy;
-		//document.getElementById('hourPicker').value = hours;
-		//document.getElementById('minutePicker').value = minutes;
-		//document.getElementById('datePicker').value = today;
-	}
 
 	function setMarker(id, latLng){
 		setMarker.markers = setMarker.markers || {};
@@ -503,6 +464,7 @@
   			}
 		}
 	}
+	
 
 /*
 DEBUG STRING:

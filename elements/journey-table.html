@@ -10,10 +10,13 @@
 	<link href="../bower_components/iron-icons/iron-icons.html" rel="import">
 	<link href="../bower_components/paper-checkbox/paper-checkbox.html" rel="import">
 	<link href="../bower_components/paper-item/paper-item.html" rel="import">
+
+	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+  	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 </head>
 
 <dom-module id="journey-table">
-<template>
+
 <style>
 #stepAdder, #stepRemover{
 			background-color: green;
@@ -23,14 +26,13 @@
 			padding: 0px;
 }
 .wholeTable {
-	margin-left: 20px;
+	overflow: hidden;
 }
 #hourPicker, #minutePicker{
 			width: 25px;
 }
 #datePicker {
 	width: 75px;
-	margin-top: 15px;
 }
 #DirectionsEntry {
 	margin-top: 15px;
@@ -39,8 +41,7 @@
 	max-height: 200px;
 }
 #JourneyOptions {
-	width: 120px;
-	margin-top: 30px;
+	width: 140px;
 	float: left;
 	overflow: hidden;
 }
@@ -55,44 +56,63 @@
 	margin-top: 5px;
 }
 #stopsTable {
-	width: 180px;
+	float: left;
+	width: 160px;
 }
 #firstColumn {
+	width: 180px;
+	overflow: hidden;
 	float:left;
 }
 #stopButtons{
-	display: inline;
 }
 #stopsTable{
+	width: 160px;
 	float: left;
 }
 #buttons{
 	float: left;
+	margin-top: 9px;
+	max-width: 20px;
 }
-.swapButtons {
-	width: 20px;
-	height: 20px;
-}
-paper-input {
-	max-width: 140px;
-	height: 40px;
-}
-paper-radio-group  > * {
-	padding: 3px;
-}
-paper-radio-button {
-	white-space: nowrap;
+#buttons img{
+	margin-top: 11px;
+	margin-left: 1px;
+	float: left;
 	cursor: pointer;
 }
+#maxWalk{
+	width: 55px;
+}
+#stepAdder, #stepRemover{
+	font-size: 1px;
+	margin-top: 5px;
+	min-width: 30px;
+}
+.directionsInput {
+	max-width: 160px;
+	margin-top: 5px;
+}
+paper-material{
+	max-width: 320px;
+	width: 100%;
+	margin: 25px auto;
+	position: relative;
+	padding: 10px;
+}
+paper-checkbox{
+	font-size: 14px;
+}
+
 </style>
-	<div class="wholeTable">
+<template>
+	<paper-material class="wholeTable">
 		<div id="firstColumn">
 			<div id="stopsTable">
 				<template id="journeyTableT" is="dom-repeat" items="{{journeyStops}}">
-    				<paper-input id="{{item}}"></paper-input>
+    				<input type="text" id="{{item}}" class="directionsInput">
     			</template>	
-    		</div>
-
+    		
     					<!--needs uniques ids for every table, and unique id for button -->
     		<div id="stopButtons">
     			<paper-button raised id="stepAdder" on-click="addStep"> 
@@ -102,9 +122,10 @@ paper-radio-button {
     				<iron-icon id"removeStepIcon" icon="block"></iron-icon>
     			</paper-button>
     		</div>
+    		</div>
     		<div id="buttons">
     			<template is="dom-repeat" items="{{swapButtons}}">
-    				<paper-button id="{{item.swapID}}" on-click="swapStartStop" class="swapButtons">8</paper-button>
+    				<img src="../images/swap.jpg" id="{{item.swapID}}" onclick="swapStartStop" class="swapButtons"/>
     			</template>
     		</div>
     	</div>
@@ -113,15 +134,15 @@ paper-radio-button {
 			<input type="text" id="hourPicker">:<input type="text" id="minutePicker">
 			<paper-checkbox>Przyjazd</paper-checkbox>
 					<!--<paper-fab id="mainButton" icon="icons:reply" on-click="forwardRequest"></paper-fab>-->
-			<div id ="internal">
 				<paper-button raised id="getToday" on-click="setCurrentDate">Now</paper-button>
-			</div>
 			Trasa piechotą:
 			<input type="text" id="maxWalk">
 		</div>
-	</div>
+	</paper-material>
 </template>
 <script>
+//container max width and height
+//highlight element that is curretly in focus.
 	Polymer({
 		is: "journey-table",
     	properties: {
@@ -143,17 +164,56 @@ paper-radio-button {
     			this.push('swapButtons', newBtnVal)
     		}
     	},
+
     	removeStep: function(){
     		if(this.journeyStops.length > 2){
     			this.pop('journeyStops');
     			this.pop('swapButtons');
     		}
     	},
+
+        setCurrentDate: function(){
+    		setDate();
+    	},
+
     	ready: function(e){
     		this.journeyStops = ["inputStop0","inputStop1"];
 		}
   	});
+  	$(function(){
+    	$("#datePicker").datepicker({
+    		showButtonPanel: true,
+   			dateFormat: "mm/dd/yy",
+    		beforeShow: function(){    
+           	$(".ui-datepicker").css('font-size', 12) 
+    		}
+    	});
+  	});
+
   	window.addEventListener('WebComponentsReady', function(e){
-	})	
+  		setDate();
+	})
+
+	function setDate(){
+		var today = new Date();
+    	var hours = today.getHours();
+    	var minutes = today.getMinutes();
+		var dd = today.getDate();
+		var mm = today.getMonth()+1; //January is 0!
+		var yyyy = today.getFullYear();
+
+		if(dd<10)
+    		dd = '0'+ dd
+		if(mm<10)
+    		mm = '0' + mm
+		if(minutes < 10)
+			minutes = '0' + minutes;
+
+		today = mm+'/'+dd+'/'+yyyy;
+		document.getElementById('hourPicker').value = hours;
+		document.getElementById('minutePicker').value = minutes;
+		document.getElementById('datePicker').value = today;
+	}
+
 </script>
 </dom-module>
