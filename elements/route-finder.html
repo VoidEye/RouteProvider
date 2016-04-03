@@ -38,91 +38,40 @@
 
 <dom-module id="route-finder">
 	<style>
-		#DirectionsEntry {
-			margin-top: 15px;
-			padding-top: 50px;
-			max-height: 200px;
+		#mainTopPanel {
+			overflow: none;
+			min-height: 100px;
 		}
-		#JourneyOptions {
-			width: 120px;
-			margin-top: 30px;
-		}
-		#jTable{
-			margin-left: 20px;
-			margin-top: 40px;
-		}
-		#hourPicker, #minutePicker{
-			width: 25px;
-		}
-		#datePicker{
-			width: 75px;
-			margin-top: 15px;
-		}
-		#getToday{
-			background-color: 5059FF;
-			font-size: 12px;
-			margin-top: 5px;
-		}
-		#swap{
-			background-color: 5059FF;
-			max-width: 10px;
-			font-size: 10px;
-			margin-top: 5px;
-		}
-		.main-panel {
-			background-color: #eee;
-			height: 100vh;
-			overflow-y: hidden;
+		.oneJourney{
+			float: left;
+			width: 350px;
 		}
 		.mainButton{
-			margin-top: 40px;
-			width: 40;
+			width: 40px;
 			height: 30px;
-		}
-		#internal{
-			width:180px;
-		}
-		#stepAdder{
-			background-color: green;
-			height: 25px;
-			margin-top: 15px;
-			min-width: 35px;
-			padding: 0px;
+			float: right;
 		}
 		#journeyAdder{
 			background-color: grey;
 			height: 25px;
-			margin-top: 15px;
 			min-width: 35px;
 			padding: 0px;
+			float: right;
 		}
-		paper-material {
-			background-color: #fff;
-			max-width: 640px;
-			width: 95%;
-			margin: 25px auto;
-			position: relative;
-		}
-		paper-toolbar {
-			color: black;
-			background: #C7EDFF;
-			float: left;
-			width: 100%;
-			height: 150px;
-		}
-		paper-input.route-finder {
-			height: 40;
-			margin-bottom: 5px;
-			max-width: 140px;
-		}
-		paper-input{
-			max-width: 140px;
+		.clearfix:after {
+			content: "";
+			display: table;
+			clear: both;
 		}
 		paper-header-panel{
-			height: 151px;
+			color: black;
+			background: #C7EDFF;
+			width: 100%;
+			overflow: visible;
+			min-height: 200px;
+			height: auto;
 		}
 		paper-drawer-panel{
-			height: 100%;
 			position: relative;
 			--paper-drawer-panel-main-container: {
 				background-color: C7EDFF;
@@ -134,20 +83,21 @@
 	</style>
   
 	<template>
-		<paper-header-panel>
-			<paper-toolbar elevation="2">
-				<div id="DirectionsEntry" class="top">
-
-				<template id="journeyTableT" is="dom-repeat" items="{{jTables}}">	
-					<journey-table id="{{item.htmlID}}"></journey-table>
-					<paper-fab id="{{item.mainButtonID}}" icon="icons:reply" on-click="forwardRequest" journey-number$="{{item.num}}" class="mainButton"></paper-fab>
+		<paper-header-panel class="clearfix">
+			<!--<div id="mainTopPanel" class="paper-header">-->
+				<template id="journeyTableT" is="dom-repeat" items="{{jTables}}">
+					<div class="oneJourney" onresize="adjustHeaderHeight">	
+						<journey-table id="{{item.htmlID}}"></journey-table>
+						<paper-fab id="{{item.mainButtonID}}" icon="icons:reply" on-click="forwardRequest" journey-number$="{{item.num}}" class="mainButton"></paper-fab>
+					</div>
 				</template>
-			</div>
 				<div id="addTableDiv">
 					<paper-button raised id="journeyAdder" on-click="addTable"> 
     					<iron-icon id"addStepIcon" icon="add"></iron-icon></paper-button>
-				</div>    					
-			</paper-toolbar>
+    				<paper-button raised id="journeyAdder" on-click="removeTable"> 
+    					<iron-icon id="addStepIcon" icon="block"></iron-icon></paper-button>
+				</div>
+			<!--</div>-->    					
 		</paper-header-panel>
 		<paper-drawer-panel>
 			<div drawer>
@@ -191,7 +141,10 @@
     	 * kolejne przystanki.
     	 */
     },
+ 	adjustHeaderHeight: function(){
+ 		document.getElementById().style.height
 
+ 	},
     addTable: function(){
     	//Nadawaj oddzielnie properties dla każdego nowego journey-table
     	var lastItem = this.jTables[this.jTables.length-1];
@@ -199,6 +152,10 @@
     	var newID = "jTid" + lastItem;
     	var newBID = "mB" + lastItem;
     	this.push('jTables', {htmlID: newID ,num: lastItem, mainButtonID: newBID});
+    },
+    removeTable: function(){
+    	if(this.jTables.length > 1)
+    		this.pop('jTables');
     },
     forwardRequest: function(e){
     	//Dać możliwość wprowadzania koordynatorów zamiast nazw, tylok jeżeli będzie poza jakimśzakresem, to wyrzucać wyjatek, albo mieć to w dupie i czekać aż OTP nie znajdzie połączenia.

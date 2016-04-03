@@ -25,8 +25,9 @@
 			min-width: 35px;
 			padding: 0px;
 }
-.wholeTable {
+#wholeTable {
 	overflow: hidden;
+	height: auto;
 }
 #hourPicker, #minutePicker{
 			width: 25px;
@@ -41,14 +42,18 @@
 	max-height: 200px;
 }
 #JourneyOptions {
-	width: 140px;
+	width: 135px;
 	float: left;
 	overflow: hidden;
 }
 #getToday {
-	background-color: 5059FF;
-	font-size: 12px;
-	margin-top: 5px;
+	font-size: 1px;
+	min-width: 25px;
+	margin-left: 25px;
+}
+#getNowIc{
+	width: 20px;
+    height: 20px;
 }
 #swap {
 	max-width: 10px;
@@ -64,11 +69,13 @@
 	overflow: hidden;
 	float:left;
 }
-#stopButtons{
+#expandButton{
+	margin-top: 33px;
 }
 #stopsTable{
 	width: 160px;
 	float: left;
+	overflow: hidden;
 }
 #buttons{
 	float: left;
@@ -94,7 +101,7 @@
 	margin-top: 5px;
 }
 paper-material{
-	max-width: 320px;
+	max-width: 315px;
 	width: 100%;
 	margin: 25px auto;
 	position: relative;
@@ -106,7 +113,7 @@ paper-checkbox{
 
 </style>
 <template>
-	<paper-material class="wholeTable">
+	<paper-material id="wholeTable">
 		<div id="firstColumn">
 			<div id="stopsTable">
 				<template id="journeyTableT" is="dom-repeat" items="{{journeyStops}}">
@@ -128,13 +135,14 @@ paper-checkbox{
     				<img src="../images/swap.jpg" id="{{item.swapID}}" onclick="swapStartStop" class="swapButtons"/>
     			</template>
     		</div>
+    		<!--<div id="expandButton"></div>-->
     	</div>
     	<div id="JourneyOptions">
     		<input type="text" id="datePicker">
 			<input type="text" id="hourPicker">:<input type="text" id="minutePicker">
 			<paper-checkbox>Przyjazd</paper-checkbox>
 					<!--<paper-fab id="mainButton" icon="icons:reply" on-click="forwardRequest"></paper-fab>-->
-				<paper-button raised id="getToday" on-click="setCurrentDate">Now</paper-button>
+				<paper-button id="getToday" on-click="setCurrentDate"><iron-icon id="getNowIc" icon="query-builder"></iron-icon></paper-button>
 			Trasa piechotą:
 			<input type="text" id="maxWalk">
 		</div>
@@ -155,7 +163,7 @@ paper-checkbox{
     	},
 
 		addStep: function(){
-    		if(this.journeyStops.length < 5){
+    		if(this.journeyStops.length < 4){
     			var lastItem = this.journeyStops[this.journeyStops.length - 1];
     			lastItem += 1;
     			var newBtnVal = "swapBtn" + lastItem;
@@ -163,12 +171,25 @@ paper-checkbox{
     			this.push('journeyStops', newValue);
     			this.push('swapButtons', newBtnVal)
     		}
+    		/*if(this.journeyStops.length > 2)
+    		{
+				document.getElementById("wholeTable").style.overflow = "hidden";
+				document.getElementById("wholeTable").style.height = "auto";
+    		}*/
     	},
 
     	removeStep: function(){
     		if(this.journeyStops.length > 2){
     			this.pop('journeyStops');
     			this.pop('swapButtons');
+    		}
+    	},
+    	expandStopsTable: function(){
+    		var expanded = false;
+    		if(this.journeyStops.length	> 2 && !expanded)
+    		{
+    			document.getElementById("wholeTable").style.overflow = "visible";
+				document.getElementById("wholeTable").style.height = "96px";
     		}
     	},
 
@@ -189,6 +210,14 @@ paper-checkbox{
     		}
     	});
   	});
+  	$('#firstColumn').click(function() {
+    	var reducedHeight = $(this).height();
+   		$(this).css('height', 'auto');
+    	var fullHeight = $(this).height();
+    	$(this).height(reducedHeight);
+
+    	$(this).animate({height: fullHeight}, 500);
+	});
 
   	window.addEventListener('WebComponentsReady', function(e){
   		setDate();
