@@ -38,6 +38,5 @@
   },
   "_source": "git://github.com/RubaXa/Sortable.git",
   "_target": "^1.4.2",
-  "_originalSource": "sortable.js",
-  "_direct": true
+  "_originalSource": "sortable.js"
 }

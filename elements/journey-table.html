@@ -10,6 +10,7 @@
 	<link href="../bower_components/iron-icons/iron-icons.html" rel="import">
 	<link href="../bower_components/paper-checkbox/paper-checkbox.html" rel="import">
 	<link href="../bower_components/paper-item/paper-item.html" rel="import">
+	<link href="../bower_components/paper-date-picker/paper-date-picker.html" rel="import">
 
 	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
   	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -117,7 +118,7 @@ paper-checkbox{
 		<div id="firstColumn">
 			<div id="stopsTable">
 				<template id="journeyTableT" is="dom-repeat" items="{{journeyStops}}">
-    				<input type="text" id="{{item}}" class="directionsInput">
+    				<input type="text" id="{{item.StopName}}" class="directionsInput">
     			</template>	
     		
     					<!--needs uniques ids for every table, and unique id for button -->
@@ -128,17 +129,18 @@ paper-checkbox{
     			<paper-button raised id="stepRemover" on-click="removeStep"> 
     				<iron-icon id"removeStepIcon" icon="block"></iron-icon>
     			</paper-button>
+    			<paper-date-picker></paper-date-picker>
     		</div>
     		</div>
     		<div id="buttons">
     			<template is="dom-repeat" items="{{swapButtons}}">
-    				<img src="../images/swap.jpg" id="{{item.swapID}}" onclick="swapStartStop" class="swapButtons"/>
+    				<img src="../images/swap.jpg" id="{{item}}" on-click="swapInputs" class="swapButtons"/>
     			</template>
     		</div>
     		<!--<div id="expandButton"></div>-->
     	</div>
     	<div id="JourneyOptions">
-    		<input type="text" id="datePicker">
+    		<input type="text" id="datePicker" on-click="showDatePicker">
 			<input type="text" id="hourPicker">:<input type="text" id="minutePicker">
 			<paper-checkbox>Przyjazd</paper-checkbox>
 					<!--<paper-fab id="mainButton" icon="icons:reply" on-click="forwardRequest"></paper-fab>-->
@@ -157,25 +159,28 @@ paper-checkbox{
     		swapButtons: {
     			type: Array,
     			value: function() { 
-    				return [{swapID: "swapBtn1"}];
+    				return ["swapBtn1"];
+    			}
+    		},
+    		journeyStops: {
+    			type: Array,
+    			value: function(){
+    				return [{StopName: "inputStop0", num: "0"},{StopName: "inputStop1", num: 1}]
     			}
     		}		
     	},
 
 		addStep: function(){
     		if(this.journeyStops.length < 4){
-    			var lastItem = this.journeyStops[this.journeyStops.length - 1];
+    			var lastItem = this.journeyStops[this.journeyStops.length - 1].num;
     			lastItem += 1;
     			var newBtnVal = "swapBtn" + lastItem;
-    			var newValue = "inputStop" + lastItem;   			
+    			var newValue = {StopName: "inputStop" + lastItem, num:lastItem};  
     			this.push('journeyStops', newValue);
-    			this.push('swapButtons', newBtnVal)
+    			this.push('swapButtons', newBtnVal);
+    			console.log(this.journeyStops);
+
     		}
-    		/*if(this.journeyStops.length > 2)
-    		{
-				document.getElementById("wholeTable").style.overflow = "hidden";
-				document.getElementById("wholeTable").style.height = "auto";
-    		}*/
     	},
 
     	removeStep: function(){
@@ -184,65 +189,72 @@ paper-checkbox{
     			this.pop('swapButtons');
     		}
     	},
-    	expandStopsTable: function(){
-    		var expanded = false;
-    		if(this.journeyStops.length	> 2 && !expanded)
-    		{
-    			document.getElementById("wholeTable").style.overflow = "visible";
-				document.getElementById("wholeTable").style.height = "96px";
-    		}
-    	},
 
         setCurrentDate: function(){
-    		setDate();
+    		this.setDate();
     	},
 
-    	ready: function(e){
-    		this.journeyStops = ["inputStop0","inputStop1"];
-		}
+		swapInputs: function(e){
+			console.log(Polymer.dom(e).localTarget);
+			var tmp;
+			switch(e.target.id){
+				case "swapBtn1":
+					tmp = this.$$('#inputStop1').value;
+					this.$$('#inputStop1').value = this.$$('#inputStop0').value;
+					this.$$('#inputStop0').value = tmp;
+					break;
+				case "swapBtn2":
+					tmp = this.$$('#inputStop2').value;
+					this.$$('#inputStop2').value = this.$$('#inputStop1').value;
+					this.$$('#inputStop1').value = tmp;
+					break;
+				case "swapBtn3":
+					tmp = this.$$('#inputStop3').value;
+					this.$$('#inputStop3').value = this.$$('#inputStop2').value;
+					this.$$('#inputStop2').value = tmp;
+					break;	
+			}
+		},
+
+		showDatePicker: function(){
+			console.log("TODO");
+			document.createElement('paper-date-picker');
+		},
+
+		attached: function(){
+			this.setDate();
+		},
+
+		setDate: function(){
+			var today = new Date();
+    		var hours = today.getHours();
+    		var minutes = today.getMinutes();
+			var dd = today.getDate();
+			var mm = today.getMonth()+1; //January is 0!
+			var yyyy = today.getFullYear();
+
+			if(dd<10)
+	    		dd = '0'+ dd
+			if(mm<10)
+	    		mm = '0' + mm
+			if(minutes < 10)
+				minutes = '0' + minutes;
+
+			today = mm+'/'+dd+'/'+yyyy;
+			this.$.hourPicker.value = hours;
+			this.$.minutePicker.value = minutes;
+			this.$.datePicker.value = today;
+		},
   	});
-  	$(function(){
-    	$("#datePicker").datepicker({
+
+  	/*		$(function(){
+    	$("this.$.datePicker").datepicker({
     		showButtonPanel: true,
    			dateFormat: "mm/dd/yy",
     		beforeShow: function(){    
            	$(".ui-datepicker").css('font-size', 12) 
     		}
     	});
-  	});
-  	$('#firstColumn').click(function() {
-    	var reducedHeight = $(this).height();
-   		$(this).css('height', 'auto');
-    	var fullHeight = $(this).height();
-    	$(this).height(reducedHeight);
-
-    	$(this).animate({height: fullHeight}, 500);
-	});
-
-  	window.addEventListener('WebComponentsReady', function(e){
-  		setDate();
-	})
-
-	function setDate(){
-		var today = new Date();
-    	var hours = today.getHours();
-    	var minutes = today.getMinutes();
-		var dd = today.getDate();
-		var mm = today.getMonth()+1; //January is 0!
-		var yyyy = today.getFullYear();
-
-		if(dd<10)
-    		dd = '0'+ dd
-		if(mm<10)
-    		mm = '0' + mm
-		if(minutes < 10)
-			minutes = '0' + minutes;
-
-		today = mm+'/'+dd+'/'+yyyy;
-		document.getElementById('hourPicker').value = hours;
-		document.getElementById('minutePicker').value = minutes;
-		document.getElementById('datePicker').value = today;
-	}
-
+  	});*/
 </script>
 </dom-module>

@@ -24,11 +24,11 @@
   },
   "ignore": [],
   "homepage": "https://github.com/polymerelements/app-layout-templates",
-  "_release": "a928745455",
+  "_release": "eabd6cc44a",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "a928745455112fe8259cc0ec0718f2ca469ce0e3"
+    "commit": "eabd6cc44a7ba685dba069d6e0a24e74bb12d88c"
   },
   "_source": "git://github.com/polymerelements/app-layout-templates.git",
   "_target": "*",

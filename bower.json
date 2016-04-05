@@ -28,7 +28,11 @@
     "paper-input": "polymerelements/paper-input#~1.0.5",
     "platform": "Polymer/platform",
     "polymer": "Polymer/polymer#^1.2.4",
-    "moment-element": "^0.2.1",
-    "Sortable": "sortable.js#^1.4.2"
+    "moment-element": "^0.3.2",
+    "Sortable": "sortable.js#^1.4.2",
+    "iron-signals": "PolymerElements/iron-signals#^1.0.3"
+  },
+  "resolutions": {
+    "moment": "~2.11.1"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "moment-element",
-  "version": "0.2.1",
+  "version": "0.3.2",
   "authors": [
     "Abdón Rodríguez Davila <a@abdonrd.com>"
   ],
@@ -27,20 +27,20 @@
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#^1.2.0",
-    "moment": "~2.11.1"
+    "moment": "~2.12.0"
   },
   "devDependencies": {
-    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
-    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
-    "web-component-tester": "^3.4.0"
+    "iron-component-page": "PolymerElements/iron-component-page#^1.1.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.1.0",
+    "web-component-tester": "^4.0.0"
   },
-  "_release": "0.2.1",
+  "_release": "0.3.2",
   "_resolution": {
     "type": "version",
-    "tag": "v0.2.1",
-    "commit": "868d2dcdc163cc5efd4533ccb71b12e9c67cb544"
+    "tag": "v0.3.2",
+    "commit": "062fac45db29bdb7e47230009bef9c54525e1bec"
   },
   "_source": "git://github.com/abdonrd/moment-element.git",
-  "_target": "^0.2.1",
+  "_target": "^0.3.2",
   "_originalSource": "moment-element"
 }
