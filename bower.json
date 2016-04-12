@@ -30,7 +30,8 @@
     "polymer": "Polymer/polymer#^1.2.4",
     "moment-element": "^0.3.2",
     "Sortable": "sortable.js#^1.4.2",
-    "iron-signals": "PolymerElements/iron-signals#^1.0.3"
+    "iron-signals": "PolymerElements/iron-signals#^1.0.3",
+    "paper-dialog": "PolymerElements/paper-dialog#^1.0.4"
   },
   "resolutions": {
     "moment": "~2.11.1"

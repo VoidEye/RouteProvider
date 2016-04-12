@@ -12,8 +12,6 @@
 	<link href="../bower_components/paper-item/paper-item.html" rel="import">
 	<link href="../bower_components/paper-date-picker/paper-date-picker.html" rel="import">
 
-	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-  	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 </head>
 
 <dom-module id="journey-table">
@@ -29,11 +27,14 @@
 #wholeTable {
 	overflow: hidden;
 	height: auto;
+	margin-top: 10px;
+	margin-bottom: 5px;
+	padding: 5px; 
 }
 #hourPicker, #minutePicker{
 			width: 25px;
 }
-#datePicker {
+.datePicker {
 	width: 75px;
 }
 #DirectionsEntry {
@@ -97,6 +98,9 @@
 	margin-top: 5px;
 	min-width: 30px;
 }
+#datePickerD{
+	display: none;
+}
 .directionsInput {
 	max-width: 160px;
 	margin-top: 5px;
@@ -120,8 +124,6 @@ paper-checkbox{
 				<template id="journeyTableT" is="dom-repeat" items="{{journeyStops}}">
     				<input type="text" id="{{item.StopName}}" class="directionsInput">
     			</template>	
-    		
-    					<!--needs uniques ids for every table, and unique id for button -->
     		<div id="stopButtons">
     			<paper-button raised id="stepAdder" on-click="addStep"> 
     				<iron-icon id"addStepIcon" icon="add"></iron-icon>
@@ -129,7 +131,6 @@ paper-checkbox{
     			<paper-button raised id="stepRemover" on-click="removeStep"> 
     				<iron-icon id"removeStepIcon" icon="block"></iron-icon>
     			</paper-button>
-    			<paper-date-picker></paper-date-picker>
     		</div>
     		</div>
     		<div id="buttons">
@@ -137,18 +138,17 @@ paper-checkbox{
     				<img src="../images/swap.jpg" id="{{item}}" on-click="swapInputs" class="swapButtons"/>
     			</template>
     		</div>
-    		<!--<div id="expandButton"></div>-->
     	</div>
     	<div id="JourneyOptions">
-    		<input type="text" id="datePicker" on-click="showDatePicker">
+    		<input type="text" id={{datepickerid}} class="datePicker">
 			<input type="text" id="hourPicker">:<input type="text" id="minutePicker">
-			<paper-checkbox>Przyjazd</paper-checkbox>
-					<!--<paper-fab id="mainButton" icon="icons:reply" on-click="forwardRequest"></paper-fab>-->
+			<paper-checkbox id="departure">Przyjazd</paper-checkbox>
 				<paper-button id="getToday" on-click="setCurrentDate"><iron-icon id="getNowIc" icon="query-builder"></iron-icon></paper-button>
 			Trasa piechotą:
 			<input type="text" id="maxWalk">
 		</div>
 	</paper-material>
+	<paper-date-picker id="datePickerD" forceNarrow="true"></paper-date-picker>
 </template>
 <script>
 //container max width and height
@@ -167,7 +167,11 @@ paper-checkbox{
     			value: function(){
     				return [{StopName: "inputStop0", num: "0"},{StopName: "inputStop1", num: 1}]
     			}
-    		}		
+    		},
+    		datepickerid: {
+    			type: String,
+    			value: "datePicker0"
+    		}
     	},
 
 		addStep: function(){
@@ -178,8 +182,6 @@ paper-checkbox{
     			var newValue = {StopName: "inputStop" + lastItem, num:lastItem};  
     			this.push('journeyStops', newValue);
     			this.push('swapButtons', newBtnVal);
-    			console.log(this.journeyStops);
-
     		}
     	},
 
@@ -195,7 +197,7 @@ paper-checkbox{
     	},
 
 		swapInputs: function(e){
-			console.log(Polymer.dom(e).localTarget);
+			//console.log(Polymer.dom(e).localTarget);
 			var tmp;
 			switch(e.target.id){
 				case "swapBtn1":
@@ -216,13 +218,15 @@ paper-checkbox{
 			}
 		},
 
-		showDatePicker: function(){
-			console.log("TODO");
-			document.createElement('paper-date-picker');
-		},
-
 		attached: function(){
 			this.setDate();
+			var dateP = Polymer.dom(this.root).querySelector('#' + this.datepickerid);
+    		$(dateP).datepicker({
+   				dateFormat: "dd/mm/yy",	
+    			beforeShow: function(){    	
+           			$(".ui-datepicker").css('font-size', 12) 
+    			}
+    		});
 		},
 
 		setDate: function(){
@@ -243,18 +247,35 @@ paper-checkbox{
 			today = mm+'/'+dd+'/'+yyyy;
 			this.$.hourPicker.value = hours;
 			this.$.minutePicker.value = minutes;
-			this.$.datePicker.value = today;
+			var dateP = Polymer.dom(this.root).querySelector('#' + this.datepickerid);
+			dateP.value = today;
 		},
-  	});
+		getInputs: function(){
+			var inputArr = [];
+			for(i = 0; i < this.journeyStops.length; ++i){
+			 	inputArr.push(this.$$('#inputStop'+ i).value);
+			 }
+			 return inputArr;
+		},
+		getOptions: function(){
+			var optDict ={};
 
-  	/*		$(function(){
-    	$("this.$.datePicker").datepicker({
-    		showButtonPanel: true,
-   			dateFormat: "mm/dd/yy",
-    		beforeShow: function(){    
-           	$(".ui-datepicker").css('font-size', 12) 
-    		}
-    	});
-  	});*/
+			var date = Polymer.dom(this.root).querySelector('#' + this.datepickerid).value;
+			var hours = this.$.hourPicker.value; 
+			var suffix = (hours >= 12)? 'pm' : 'am';
+		
+			hours = ((parseInt(hours)+11)%12)+1;
+
+			optDict["arriveBy"] = this.$.departure.checked;
+			if(this.$.maxWalk.value === "")
+				optDict["maxWalk"] = 800;
+			else
+				optDict["maxWalk"] = this.$.maxWalk.value;
+			optDict["time"] = hours + ":" +this.$.minutePicker.value + suffix;
+			optDict["date"] = date.replace(/\//g,"-");
+	
+			return optDict;
+		}
+  	});
 </script>
 </dom-module>

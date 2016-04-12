@@ -21,7 +21,7 @@
 	<link href="journey-table.html" rel="import">
 
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-  	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="//code.jquery.com/jquery-2.2.2.js"></script>
   	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 
 	<link rel="stylesheet" href="../leaflet/leaflet.css" />
@@ -86,7 +86,7 @@
 			<!--<div id="mainTopPanel" class="paper-header">-->
 				<template id="journeyTableT" is="dom-repeat" items="{{jTables}}">
 					<div class="oneJourney">	
-						<journey-table id="{{item.htmlID}}"></journey-table>
+						<journey-table id="{{item.htmlID}}" datepickerid="{{item.dpID}}"></journey-table>
 						<paper-fab id="{{item.mainButtonID}}" icon="icons:reply" on-click="forwardRequest" journey-number$="{{item.num}}" class="mainButton"></paper-fab>
 					</div>
 				</template>
@@ -131,112 +131,63 @@
     	},
     	jTables: {
     		type: Array,
-    		value:[{htmlID: "jTid0", num:  0, mainButtonID: "mB0"}]
+    		value:[{htmlID: "jTid0", num:  0, mainButtonID: "mB0", dpID: "datePicker0"}]
     	},
-    	/*
-    	 * Potrzebuję aby każdy button odpowiadał za swoją tabelę, czyli addStep musiałby ściągać 
-    	 * idTabeli i tylko dla tej tabeli zwiększać wartość, albo z każdą nową wartością wpisywać
-    	 * nowy property, albo zrobić property 2DArray i  wiersze to oddzielne tabele, a kolumny to
-    	 * kolejne przystanki.
-    	 */
     },
     addTable: function(){
-    	//Nadawaj oddzielnie properties dla każdego nowego journey-table
     	var lastItem = this.jTables[this.jTables.length-1];
     	lastItem = 1 + lastItem.num;
     	var newID = "jTid" + lastItem;
     	var newBID = "mB" + lastItem;
-    	this.push('jTables', {htmlID: newID ,num: lastItem, mainButtonID: newBID});
+    	var newdpID = "datePicker" + lastItem;
+    	this.push('jTables', {htmlID: newID ,num: lastItem, mainButtonID: newBID, dpID: newdpID});
     },
     removeTable: function(){
     	if(this.jTables.length > 1)
     		this.pop('jTables');
     },
     forwardRequest: function(e){
-    	//Dać możliwość wprowadzania koordynatorów zamiast nazw, tylok jeżeli będzie poza jakimśzakresem, to wyrzucać wyjatek, albo mieć to w dupie i czekać aż OTP nie znajdzie połączenia.
-    	//var geocoder = new L.Control.Geocoder.Nominatim();
-    	if(e.target.id === "icon"){
+    	var geocoder = new L.Control.Geocoder.Nominatim();
+    	if(e.target.id === "icon")
     		var jNumber = e.target.parentNode.getAttribute('journey-number');
-    		//console.log(e.target.parentNode.id);
-    	}
     	else
     		var jNumber = e.target.getAttribute('journey-number');
 
-    	var chTabID = "#jTid" + jNumber;
-    	// Brać element "journey-table", a potem brać childa o danym ID? 
-    	//Chyba jednak rozwiązanie nr. jeden. A może jest jeszcze jakieś?
-    	// Jeżeli mogę dostać się do propertisów journey-table z poziomu route-findera, to może mogę łatwo stowrzyć array z ID elementów i wtedy chyba byłoby szybicej?
-    	//Lepiej(?): Po kliknięciu na button zwraca cały journey-table i z tego czytamy properties/input-id, tylko przycisk musiały obsługiwać funckje z tego elementu.
-    	//this.$$(chTabID);
-    	//console.log(document.getElementById(chTabID));
+    	var chTabID = "jTid" + jNumber;
     	var choosenTab = document.getElementById(chTabID);
-    	//console.log(choosenTab.inputStop0);
-    	var inputS = this.$$(chTabID).querySelector('#inputStop0');
+    	var inputs = choosenTab.getInputs(); 
+    	var coordsDict = {};
 
-    	console.log(inputS.value);
-    	//var startAdress = this.$.startElemName.value;
-    	var stopAdress = this.$.inputStop.value;
+    	for(i = 0; i < inputs.length; ++i){
+    		var inputAdress = inputs[i];	
 
-    	/*
-    	switch()
-    	var startAdress = this.$.inputStart.value;
-    	var stopAdress = this.$.inputStop.value;
-
-	 	if (/[a-z]/i.test(startAdress) === true){
-    		geocoder.geocode(startAdress, getCoordsStart);
-    	}
-    	else{
-    		var cordsArr = startAdress.split(",");
-    		var toPass = [];
-    			toPass[0] = {
-    			name: "",
-    			center: L.latLng(cordsArr[0], cordsArr[1])
+	 		if (/[a-z]/i.test(inputAdress) === true){
+    			geocoder.geocode(inputAdress, accCoordsWrapper(i, coordsDict, choosenTab));
     		}
-    		getCoordsStart(toPass);
-    	}	
-    	if (/[a-z]/i.test(stopAdress) === true){
-	 		geocoder.geocode(stopAdress, getCoordsStop);
+    		else{
+    			var cordsArr = inputAdress.split(",");
+    			var toPass = [];
+    				toPass[0] = {
+    				name: "",
+    				center: L.latLng(cordsArr[0], cordsArr[1])
+    			}
+    			accCoordsWrapper(toPass);
+    		}	
 	 	}
-	 	else{
-	 		var cordsArr = stopAdress.split(",");
-    		var toPass = [];
-    		toPass[0] = {
-    			name: "",
-    			center: L.latLng(cordsArr[0], cordsArr[1])
-    		}
-    		getCoordsStop(toPass);
-	 	}*/
 
-	 	function getCoordsStart(results){
-       		var latLngStart = new L.LatLng(results[0].center.lat, results[0].center.lng);
-       		var startName = results[0].name;
-       		var startPointCoords = {coords:latLngStart, stopName:name};
-       		accumulateCoords(startPointCoords, 0);
-		}
-		function getCoordsStop(results){   	
-			var latLngStop = new L.LatLng(results[0].center.lat, results[0].center.lng);
-       		var stopName = results[0].name;
-       		var stopPointCoords = {coords:latLngStop, stopName:name};
-       		accumulateCoords(stopPointCoords, 1);
-       	}
-
-       	function accumulateCoords(coordsArray, iWhichOne){
-       		accumulateCoords.start_stop = accumulateCoords.start_stop || []
-			accumulateCoords.accumulationStatus = ++accumulateCoords.accumulationStatus || 1;
-			if(iWhichOne === 0){
-				accumulateCoords.start_stop[0] = coordsArray; 
-				setMarker("start", coordsArray.coords);
-			}
-			if(iWhichOne === 1){
-				accumulateCoords.start_stop[1] = coordsArray; 
-				setMarker("stop", coordsArray.coords);
-			}
-
-	 		if(accumulateCoords.accumulationStatus === 2){
-	 			accumulateCoords.accumulationStatus = 0;
-	 			sendToOTP(accumulateCoords.start_stop);	
-	 		}
-       	}
+	 	function accCoordsWrapper(key, coordsDict, pChoosenTab) {
+	 		function accCoordsInner(results) {
+		 		var latLng = new L.LatLng(results[0].center.lat, results[0].center.lng);
+	       		var startName = results[0].name;
+		 		coordsDict[key] = {latLng};
+		 		if(Object.keys(coordsDict).length === inputs.length)
+		 		{
+		 			var jsonArr = [];
+		 			sendToOTP(coordsDict ,jsonArr ,pChoosenTab);
+		 		}
+		 	}	
+		 	return accCoordsInner;
+	 	}
     },
 
 	/*{Wyniki z searcha trzeba by przepuszczać przez własną funkcje i wyświetlać w podpwoeidziach do 
@@ -246,10 +197,8 @@
 		1. Implementacja searcha i funkcji do któej zbiera wyniki
 		2. wyświetlanie wyników w podpowiedziach przy 'inpucie' i wyswiettla w panelu
 
+		Dać możliwość wprowadzania koordynatorów zamiast nazw, tylok jeżeli będzie poza jakimśzakresem, to wyrzucać wyjatek, albo mieć to w dupie i czekać aż OTP nie znajdzie połączenia.
 		geosearch limitowany/priorytyzowany dla konkretnej lokacji to jest must./
-		//stwórz zmienną w której będziesz dodawł przekazane do funkcji parametr np. 1+2
-		accumulateCoords.start_stop = accumulateCoords.start_stop || []
-		accumulateCoords.accumulationStatus = ++accumulateCoords.accumulationStatus || 1;
 	},*/
 
 	printResults: function(jResp){
@@ -304,12 +253,6 @@
 		}	
 	},
 
-    swapStartStop: function(){
-    	var tmp = this.$.inputStart.value;
-    	this.$.inputStart.value = this.$.inputStop.value;
-		this.$.inputStop.value = tmp;
-    },
-
 	ready: function(e){
 		window.onresize = function(event) {
 		};
@@ -323,8 +266,6 @@
 			SetMarker powinien być na enter, po wybraniu lokalizacji.*/
 	var popup;
 
-
-
 	window.addEventListener('WebComponentsReady', function(e){
 		var map = document.getElementById("warsawMap").map;
 		//Podpisz te koordy, jako boundaries np.
@@ -332,8 +273,6 @@
     	northEast = L.latLng(52.396134469429214, 21.430892944335938),
    		bounds = L.latLngBounds(southWest, northEast);
     	map.setMaxBounds(bounds);
-
-    	
 
     	map.on('contextmenu', function(e){
     		var popUpContent = "<div onClick=\"setMarkerFromClick\(\'start\'\)\">Przystanek startowy</div><div onClick=\"setMarkerFromClick\(\'stop\'\)\">Przystanek docelowy</div>";
@@ -356,8 +295,6 @@
 		setMarker(id, latlng);
 	}
 	L.Icon.Default.imagePath = "../images";
-
-
 
 	function setMarker(id, latLng){
 		setMarker.markers = setMarker.markers || {};
@@ -387,31 +324,35 @@
 		}
 	}
 
-	function sendToOTP(start_stopCoords){	
-		var arriveBy = (document.getElementById('selection').selected === "Departure") ? 'false' : 'true';
-		var maxWalkDistance = document.getElementById('maxWalk').value;
-		var date = document.getElementById('datePicker').value;
-		var hours = document.getElementById('hourPicker').value; 
-		var suffix = (hours >= 12)? 'pm' : 'am';
-		
-		date = date.replace(/\//g,"-");
-		hours = ((parseInt(hours)+11)%12)+1;
-		
-		var time = hours + ":" + document.getElementById('minutePicker').value + suffix;
+	function sendToOTP(coordsDict, jsonArr, jTable){	
+		var jOptions = jTable.getOptions();
+		var requestString = "http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=" + coordsDict[0].latLng.lat + "," + coordsDict[0].latLng.lng + "&toPlace=" + coordsDict[1].latLng.lat + "," + coordsDict[1].latLng.lng + "&time=" + jOptions["time"] + "&date=" + jOptions["date"] + "&mode=TRANSIT,WALK&maxWalkDistance=" + jOptions["maxWalk"] + "&arriveBy=" + jOptions["arriveBy"] + "&wheelchair=false&locale=en";
 
-		var requestString = "http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=" + start_stopCoords[0].coords.lat + "," + start_stopCoords[0].coords.lng + "&toPlace=" + start_stopCoords[1].coords.lat + "," + start_stopCoords[1].coords.lng + "&time=" + time + "&date=" + date + "&mode=TRANSIT,WALK&maxWalkDistance=" + maxWalkDistance + "&arriveBy=" + arriveBy + "&wheelchair=false&locale=en";
+			var response;
+    		var reqHandler = new XMLHttpRequest();
 
-		var response;
-    	var reqHandler = new XMLHttpRequest();
+ 			reqHandler.addEventListener("load", processRequest(coordsDict, jsonArr, jTable));
+    		reqHandler.open('GET', requestString, true);
+    		reqHandler.send();
 
- 		reqHandler.addEventListener("load", processRequest);
-    	reqHandler.open('GET',requestString , true);
-    	reqHandler.send();
-
-    	function processRequest(e){
+    	function processRequest(passedDict, respJSONArr, jTable){
     		if(reqHandler.status == 200){
   				response = JSON.parse(reqHandler.responseText); 
-  				//printResults(response);
+  				respJSONArr.push(respone);
+
+  				var dictLen = Object.keys(passedDict).length;
+  				if(dictLen > 2){
+  					for(i = 0; i < dictLen-2; ++i)
+  						passedDict[i] = passedDict[i+1]
+  						
+  					delete passedDict[dictLen-1];
+  					SendToOTP(passedDict, respJSONArr, jTable);
+  				}
+  				else{
+  					setLines();
+  					setMarkers();
+  					printResults(respJSONArr);
+  				}
   				console.log(response);
   			}
 		}
