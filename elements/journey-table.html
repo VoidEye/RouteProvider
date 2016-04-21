@@ -10,112 +10,110 @@
 	<link href="../bower_components/iron-icons/iron-icons.html" rel="import">
 	<link href="../bower_components/paper-checkbox/paper-checkbox.html" rel="import">
 	<link href="../bower_components/paper-item/paper-item.html" rel="import">
-	<link href="../bower_components/paper-date-picker/paper-date-picker.html" rel="import">
-
+	<link href="../bower_components/iron-signals/iron-signals.html" rel="import">
 </head>
 
 <dom-module id="journey-table">
 
 <style>
-#stepAdder, #stepRemover{
-			background-color: green;
-			height: 25px;
-			margin-top: 15px;
-			min-width: 35px;
-			padding: 0px;
-}
-#wholeTable {
-	overflow: hidden;
-	height: auto;
-	margin-top: 10px;
-	margin-bottom: 5px;
-	padding: 5px; 
-}
-#hourPicker, #minutePicker{
-			width: 25px;
-}
-.datePicker {
-	width: 75px;
-}
-#DirectionsEntry {
-	margin-top: 15px;
-	padding-top: 50px;
-	max-width: 180px;
-	max-height: 200px;
-}
-#JourneyOptions {
-	width: 135px;
-	float: left;
-	overflow: hidden;
-}
-#getToday {
-	font-size: 1px;
-	min-width: 25px;
-	margin-left: 25px;
-}
-#getNowIc{
-	width: 20px;
-    height: 20px;
-}
-#swap {
-	max-width: 10px;
-	font-size: 10px;
-	margin-top: 5px;
-}
-#stopsTable {
-	float: left;
-	width: 160px;
-}
-#firstColumn {
-	width: 180px;
-	overflow: hidden;
-	float:left;
-}
-#expandButton{
-	margin-top: 33px;
-}
-#stopsTable{
-	width: 160px;
-	float: left;
-	overflow: hidden;
-}
-#buttons{
-	float: left;
-	margin-top: 9px;
-	max-width: 20px;
-}
-#buttons img{
-	margin-top: 11px;
-	margin-left: 1px;
-	float: left;
-	cursor: pointer;
-}
-#maxWalk{
-	width: 55px;
-}
-#stepAdder, #stepRemover{
-	font-size: 1px;
-	margin-top: 5px;
-	min-width: 30px;
-}
-#datePickerD{
-	display: none;
-}
-.directionsInput {
-	max-width: 160px;
-	margin-top: 5px;
-}
-paper-material{
-	max-width: 315px;
-	width: 100%;
-	margin: 25px auto;
-	position: relative;
-	padding: 10px;
-}
-paper-checkbox{
-	font-size: 14px;
-}
-
+	#stepAdder, #stepRemover{
+		background-color: green;
+		height: 25px;
+		margin-top: 15px;
+		min-width: 35px;
+		padding: 0px;
+	}
+	#wholeTable {
+		overflow: hidden;
+		height: auto;
+		margin-top: 10px;
+		margin-bottom: 5px;
+		padding: 5px; 
+	}
+	#hourPicker, #minutePicker{
+				width: 25px;
+	}
+	.datePicker {
+		width: 75px;
+	}
+	#DirectionsEntry {
+		margin-top: 15px;
+		padding-top: 50px;
+		max-width: 180px;
+		max-height: 200px;
+	}
+	#JourneyOptions {
+		width: 135px;
+		float: left;
+		overflow: hidden;
+	}
+	#getToday {
+		font-size: 1px;
+		min-width: 25px;
+		margin-left: 25px;
+	}
+	#getNowIc{
+		width: 20px;
+	    height: 20px;
+	}
+	#swap {
+		max-width: 10px;
+		font-size: 10px;
+		margin-top: 5px;
+	}
+	#stopsTable {
+		float: left;
+		width: 160px;
+	}
+	#firstColumn {
+		width: 180px;
+		overflow: hidden;
+		float:left;
+	}
+	#expandButton{
+		margin-top: 33px;
+	}
+	#stopsTable{
+		width: 160px;
+		float: left;
+		overflow: hidden;
+	}
+	#buttons{
+		float: left;
+		margin-top: 9px;
+		max-width: 20px;
+	}
+	#buttons img{
+		margin-top: 11px;
+		margin-left: 1px;
+		float: left;
+		cursor: pointer;
+	}
+	#maxWalk{
+		width: 55px;
+	}
+	#stepAdder, #stepRemover{
+		font-size: 1px;
+		margin-top: 5px;
+		min-width: 30px;
+	}
+	#datePickerD{
+		display: none;
+	}
+	.directionsInput {
+		max-width: 160px;
+		margin-top: 5px;
+	}
+	paper-material{
+		max-width: 315px;
+		width: 100%;
+		margin: 25px auto;
+		position: relative;
+		padding: 10px;
+	}
+	paper-checkbox{
+		font-size: 14px;
+	}
 </style>
 <template>
 	<paper-material id="wholeTable">
@@ -148,11 +146,8 @@ paper-checkbox{
 			<input type="text" id="maxWalk">
 		</div>
 	</paper-material>
-	<paper-date-picker id="datePickerD" forceNarrow="true"></paper-date-picker>
 </template>
 <script>
-//container max width and height
-//highlight element that is curretly in focus.
 	Polymer({
 		is: "journey-table",
     	properties: {
@@ -190,6 +185,7 @@ paper-checkbox{
     			this.pop('journeyStops');
     			this.pop('swapButtons');
     		}
+    		//fire iron signal to close pop-up on map
     	},
 
         setCurrentDate: function(){
@@ -197,7 +193,6 @@ paper-checkbox{
     	},
 
 		swapInputs: function(e){
-			//console.log(Polymer.dom(e).localTarget);
 			var tmp;
 			switch(e.target.id){
 				case "swapBtn1":
@@ -220,6 +215,7 @@ paper-checkbox{
 
 		attached: function(){
 			this.setDate();
+
 			var dateP = Polymer.dom(this.root).querySelector('#' + this.datepickerid);
     		$(dateP).datepicker({
    				dateFormat: "dd/mm/yy",	
@@ -227,6 +223,24 @@ paper-checkbox{
            			$(".ui-datepicker").css('font-size', 12) 
     			}
     		});
+    		
+    		var observer = new MutationObserver(function(mutations) {
+  				mutations.forEach(function(mutation) {
+  					if(mutation.addedNodes.length > 0){
+   						document.querySelector('journey-table').fire('iron-signal', {name: 'inputadded', data:mutation.addedNodes[1]});
+  					}
+  				});    
+  				mutations.forEach(function(mutation) {
+  					if(mutation.removedNodes.length > 0){
+  						console.log(mutation.removedNodes);
+   						document.querySelector('journey-table').fire('iron-signal', {name: 'inputremoved', data:mutation.removedNodes[1]});
+  					}
+  				});  
+			});
+
+    		var target = this.$.stopsTable;
+    		var config = {childList: true};
+    		observer.observe(target, config);
 		},
 
 		setDate: function(){
@@ -253,9 +267,12 @@ paper-checkbox{
 		getInputs: function(){
 			var inputArr = [];
 			for(i = 0; i < this.journeyStops.length; ++i){
-			 	inputArr.push(this.$$('#inputStop'+ i).value);
+			 	inputArr.push(this.$$('#inputStop'+ i));
 			 }
 			 return inputArr;
+		},
+		getInputsLen: function(){
+			return this.journeyStops.length;
 		},
 		getOptions: function(){
 			var optDict ={};
@@ -275,7 +292,7 @@ paper-checkbox{
 			optDict["date"] = date.replace(/\//g,"-");
 	
 			return optDict;
-		}
+		},
   	});
 </script>
 </dom-module>

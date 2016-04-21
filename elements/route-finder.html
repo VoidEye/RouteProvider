@@ -13,12 +13,10 @@
 	<link href="../bower_components/paper-fab/paper-fab.html" rel="import">
 	<link href="../bower_components/paper-button/paper-button.html" rel="import">
 	<link href="../bower_components/iron-icons/iron-icons.html" rel="import">
-	<link href="../bower_components/leaflet-map/leaflet-map.html" rel="import">
-	<link href="../bower_components/paper-radio-group/paper-radio-group.html" rel="import">
-	<link href="../bower_components/paper-radio-button/paper-radio-button.html" rel="import">
 	<link href="../bower_components/paper-card/paper-card.html" rel="import">
+	<link href="../bower_components/google-map/google-map.html" rel="import">
+	<link href="../bower_components/iron-signals/iron-signals.html" rel="import">
 	
-	<link href="journey-table.html" rel="import">
 
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 	<script src="//code.jquery.com/jquery-2.2.2.js"></script>
@@ -30,9 +28,8 @@
 
 	<link rel="stylesheet" href="../ControlGeoCoder/Control.Geocoder.css" />
 	<script src="../ControlGeoCoder/Control.Geocoder.js"></script>
+	<link href="journey-table.html" rel="import">
 
-	<link rel="stylesheet" href="../leaflet-search/leaflet-search.css" />
-	<script src="../leaflet-search/leaflet-search.js"></script>
 </head>
 
 <dom-module id="route-finder">
@@ -50,7 +47,7 @@
 			height: 30px;
 			float: right;
 		}
-		#journeyAdder{
+		.jTableBtns{
 			background-color: grey;
 			height: 25px;
 			min-width: 35px;
@@ -83,6 +80,7 @@
   
 	<template>
 		<paper-header-panel class="clearfix">
+			<div id="jouTables">
 			<!--<div id="mainTopPanel" class="paper-header">-->
 				<template id="journeyTableT" is="dom-repeat" items="{{jTables}}">
 					<div class="oneJourney">	
@@ -90,10 +88,11 @@
 						<paper-fab id="{{item.mainButtonID}}" icon="icons:reply" on-click="forwardRequest" journey-number$="{{item.num}}" class="mainButton"></paper-fab>
 					</div>
 				</template>
+			</div>
 				<div id="addTableDiv">
-					<paper-button raised id="journeyAdder" on-click="addTable"> 
+					<paper-button raised id="journeyAdder" class="jTableBtns" on-click="addTable"> 
     					<iron-icon id"addStepIcon" icon="add"></iron-icon></paper-button>
-    				<paper-button raised id="journeyAdder" on-click="removeTable"> 
+    				<paper-button raised id="journeyRemove" class="jTableBtns" on-click="removeTable"> 
     					<iron-icon id="addStepIcon" icon="block"></iron-icon></paper-button>
 				</div>
 			<!--</div>-->    					
@@ -108,16 +107,18 @@
 				</paper-card>
 				<paper-card heading="Card Title">
   					<div class="card-content">Some content</div>
+
   					<div class="card-actions">
     					<paper-button>Some action</paper-button>
   					</div>
 				</paper-card>
 			</div>
 			<div main>
-				<leaflet-map id="warsawMap" latitude="52.2297" longitude="21.0122" zoom="12">
-				</leaflet-map>
+				<google-map api-key="AIzaSyDaDW6auCLExulkcDpkRveDXXIr6dP6t_Y" id="warsawMap" latitude="52.2297" longitude="21.0122" zoom="12" click-events="true" mouse-events="true"></google-map>
 			</div>
 		</paper-drawer-panel> 
+		<iron-signals on-iron-signal-inputadded="initAutoComplete"></iron-signals>
+		<iron-signals on-iron-signal-inputremoved="hideMarker"></iron-signals>
 	</template>
 
 <script>
@@ -125,14 +126,18 @@
     is: "route-finder",
 
     properties: {
-    	startPointSet: {
-    		type: Boolean,
-    		value: true
-    	},
     	jTables: {
     		type: Array,
-    		value:[{htmlID: "jTid0", num:  0, mainButtonID: "mB0", dpID: "datePicker0"}]
+    		value:[ {htmlID: "jTid0", num:  0, mainButtonID: "mB0", dpID: "datePicker0"}]
     	},
+    	infWind:{
+    		type: Object,
+    		value: function(){return {};}
+    	},
+    	markers:{
+    		type: Object,
+    		value: function(){return {};}
+    	}	
     },
     addTable: function(){
     	var lastItem = this.jTables[this.jTables.length-1];
@@ -158,6 +163,15 @@
     	var inputs = choosenTab.getInputs(); 
     	var coordsDict = {};
 
+		for(i = 0; i < inputs.length; ++i){
+    		if (/[a-z]/i.test(inputs[i]) === true){
+    			key = chTabID + inputs[i].id;
+    			coordsDict[i] = this.markers[key].position;
+    		}
+    	}
+    	var jsonArr = [];
+		sendToOTP(coordsDict ,jsonArr ,choosenTab);
+    	/*
     	for(i = 0; i < inputs.length; ++i){
     		var inputAdress = inputs[i];	
 
@@ -174,7 +188,7 @@
     			accCoordsWrapper(toPass);
     		}	
 	 	}
-
+		
 	 	function accCoordsWrapper(key, coordsDict, pChoosenTab) {
 	 		function accCoordsInner(results) {
 		 		var latLng = new L.LatLng(results[0].center.lat, results[0].center.lng);
@@ -188,19 +202,43 @@
 		 	}	
 		 	return accCoordsInner;
 	 	}
+	 	*/
     },
 
-	/*{Wyniki z searcha trzeba by przepuszczać przez własną funkcje i wyświetlać w podpwoeidziach do 
-		inputu, przy kliknięciu uruchamiać geocoder i rysować marker, a dopiero przy kliknięciu guzika 
-		szukać trasy, + przesuwanie i ustawianie markera za pomocą myszy.
+	/*{	przy kliknięciu guzika szukać trasy
 		Czyli:
-		1. Implementacja searcha i funkcji do któej zbiera wyniki
-		2. wyświetlanie wyników w podpowiedziach przy 'inpucie' i wyswiettla w panelu
-
-		Dać możliwość wprowadzania koordynatorów zamiast nazw, tylok jeżeli będzie poza jakimśzakresem, to wyrzucać wyjatek, albo mieć to w dupie i czekać aż OTP nie znajdzie połączenia.
-		geosearch limitowany/priorytyzowany dla konkretnej lokacji to jest must./
+		Dać możliwość wprowadzania koordynatorów zamiast nazw
 	},*/
+	setMarker: function(adress, key, fromPopUp){
+		if(this.markers[key] === undefined)
+	    {
+	    	var marker = new google.maps.Marker({
+	    		draggable: true,
+	    		position: {lat: 0, lng: 0}}); 
+	    	this.markers[key] = marker;
+	    	this.markers[key].addListener('dragend',function(e) {
+	    		 console.log(e.latLng.lat());
+	    	});
+	    }
 
+		var map = document.querySelector('google-map').map;
+		this.markers[key].setMap(map);
+
+		if(!fromPopUp)
+			this.markers[key].setPosition(adress.geometry.location);
+		else
+			this.markers[key].setPosition(adress);
+	},
+	hideMarker: function(passedInput){
+		console.log(passedInput.detail);
+		if(passedInput[0] != undefined)
+		{
+			console.log("adf");
+			var key = passedInput.detail.parentNode.parentNode.parentNode.parentNode.id + passedInput.detail.id;
+
+			markers[key].setMap(null);
+		}
+	},
 	printResults: function(jResp){
 		//var d = new Date(0);
 		//d.setUTCSeconds(journeyDate);
@@ -252,91 +290,109 @@
 			}
 		}	
 	},
+	setPopUp: function(e){
+		if(this.infWind === undefined ){
+			this.infWind = new google.maps.InfoWindow;
+			document.querySelector("route-finder").infWind = this.infWind;
+		}
+		var map = document.querySelector('google-map').map;
 
-	ready: function(e){
-		window.onresize = function(event) {
-		};
-		window.onresize();
+		var contentString = '';
+		var jTabLen = document.querySelector("route-finder").jTables.length;
+		
+		for(i = 0; i < jTabLen; ++i)
+		{
+			contentString += "<button type=\"button\" id=\"journeyLine\" onclick=\"passTable("+i+")\">Trasa " + i;
+		}
+		this.infWind.setContent(contentString);
+        this.infWind.setPosition(e.detail.latLng);
+        this.infWind.open(map, this);        
 	},
+	setIwindowContent: function(tableNum){
+		var contentLine = "";
+		var chTabID = "jTid" + tableNum;
+    	var choosenTab = document.getElementById(chTabID);
+    	var inputs = choosenTab.getInputs(); 
+		for(i = 0; i < inputs.length; ++i)
+		{
+			contentLine += "<button type=\"button\" id=\"lineForInput" + i + "\" onclick=\"passToSetMarker(" + tableNum +  ", " + i + ")\">Przystanek: " + i;
+		}
+		this.infWind.setContent(contentLine);
+	},
+	ready: function(e){
+		var map = this.$.warsawMap;	
+		map.addEventListener('google-map-rightclick', this.setPopUp);
+		this.addEventListener('google-map-ready', this.initBasicAutoComp);
+	},
+	initAutoComplete: function(passedInput){
+		var defaultBounds = new google.maps.LatLngBounds(
+ 	 			new google.maps.LatLng(51.991645772197344, 20.558853149414062),
+  				new google.maps.LatLng(52.396134469429214, 21.430892944335938));
+
+	    	var options = {
+	    		bounds: defaultBounds
+	    	};
+	    	var key = passedInput.detail.parentNode.parentNode.parentNode.parentNode.id + passedInput.detail.id;
+
+			var autocomplete = new google.maps.places.Autocomplete(passedInput.detail, options);
+
+			autocomplete.addListener('place_changed',function(){
+	    		place = autocomplete.getPlace();
+	    		document.querySelector('route-finder').setMarker(place, key, false);
+	    	});
+	},
+	initBasicAutoComp: function(){
+			var defaultBounds = new google.maps.LatLngBounds(
+	 	 			new google.maps.LatLng(51.991645772197344, 20.558853149414062),
+	  				new google.maps.LatLng(52.396134469429214, 21.430892944335938));
+
+		    var options = {
+		    	bounds: defaultBounds
+		    };
+		    var inputs = document.getElementById('jTid0').getInputs();
+	    	var autocomplete = new google.maps.places.Autocomplete(inputs[0], options);
+	    	var autocomplete1 = new google.maps.places.Autocomplete(inputs[1],options);
+
+	    	var key1 = inputs[0].parentNode.parentNode.parentNode.parentNode.id +inputs[0].id;
+	    	var key2 = inputs[1].parentNode.parentNode.parentNode.parentNode.id +inputs[1].id;
+
+	    	autocomplete.addListener('place_changed', function(){
+	    		place = autocomplete.getPlace();
+	    		document.querySelector('route-finder').setMarker(place, key1, false);
+	    	});
+	    	autocomplete1.addListener('place_changed', function(){
+	    		place = autocomplete1.getPlace();
+	    		document.querySelector('route-finder').setMarker(place, key2, false);
+	    	});
+  	},
   });
-
-
-
-	/*TODO: Autocomplete/search, Odbieranie i ładne wypisywanie odpowiedzi, oraz rysowanie linii między punktami, geolocation
+	/*TODO: Odbieranie i ładne wypisywanie odpowiedzi, oraz rysowanie linii między punktami, geolocation
 			SetMarker powinien być na enter, po wybraniu lokalizacji.*/
-	var popup;
-
-	window.addEventListener('WebComponentsReady', function(e){
-		var map = document.getElementById("warsawMap").map;
-		//Podpisz te koordy, jako boundaries np.
-    	southWest = L.latLng(51.991645772197344, 20.558853149414062),
-    	northEast = L.latLng(52.396134469429214, 21.430892944335938),
-   		bounds = L.latLngBounds(southWest, northEast);
-    	map.setMaxBounds(bounds);
-
-    	map.on('contextmenu', function(e){
-    		var popUpContent = "<div onClick=\"setMarkerFromClick\(\'start\'\)\">Przystanek startowy</div><div onClick=\"setMarkerFromClick\(\'stop\'\)\">Przystanek docelowy</div>";
-    		popup = L.popup()
-    		.setLatLng(e.latlng)
-    		.setContent(popUpContent);
-    		popup.openOn(map);
-    	});
-	}),
-	
-	window.setMarkerFromClick = function(id){
-		var latlng = popup.getLatLng();
-		if(id === 'start'){
-			document.getElementById('inputStart').value = latlng.lat + "," + latlng.lng;
-		}
-		else if(id === 'stop'){
-			document.getElementById('inputStop').value = latlng.lat + "," + latlng.lng;
-		}
-		$(".leaflet-popup-close-button")[0].click();
-		setMarker(id, latlng);
+	//L.Icon.Default.imagePath = "../images"; 		
+	function passTable(passedTable){
+		document.querySelector("route-finder").setIwindowContent(passedTable);
 	}
-	L.Icon.Default.imagePath = "../images";
-
-	function setMarker(id, latLng){
-		setMarker.markers = setMarker.markers || {};
-		if(setMarker.markers[id] != null)
-			setMarker.markers[id].setLatLng(latLng);
-		else{
-			var marker;
-			if(id === 'start'){
-				var startIcon = new L.Icon({iconUrl: '../images/starterMarker.png', iconSize: [38, 35]});
-				marker = new L.marker(latLng, {id:id, icon:startIcon, draggable:'true'});
-				setMarker.markers[id] = marker;
-				marker.on('dragend', function(){
-					var markerCoords = setMarker.markers['start'].getLatLng();
-					document.getElementById('inputStart').value = markerCoords.lat + "," + markerCoords.lng;
-				});
-			}
-			else if(id === 'stop'){
-				marker = new L.marker(latLng, {id:id, draggable:'true'});
-				setMarker.markers[id] = marker;
-				marker.on('dragend', function(){
-					var markerCoords = setMarker.markers['stop'].getLatLng();
-					document.getElementById('inputStop').value = markerCoords.lat + "," + markerCoords.lng;
-				});
-			}
-			var parent = document.getElementById('warsawMap').map;
-			parent.addLayer(marker);
-		}
+	function passToSetMarker(tableNum, inputNum){
+		rFinder = document.querySelector("route-finder");
+		var key = "jTid" + tableNum + "inputStop" + inputNum;
+		rFinder.setMarker(rFinder.infWind.position, key, true);
+		rFinder.infWind.close();
 	}
-
 	function sendToOTP(coordsDict, jsonArr, jTable){	
 		var jOptions = jTable.getOptions();
-		var requestString = "http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=" + coordsDict[0].latLng.lat + "," + coordsDict[0].latLng.lng + "&toPlace=" + coordsDict[1].latLng.lat + "," + coordsDict[1].latLng.lng + "&time=" + jOptions["time"] + "&date=" + jOptions["date"] + "&mode=TRANSIT,WALK&maxWalkDistance=" + jOptions["maxWalk"] + "&arriveBy=" + jOptions["arriveBy"] + "&wheelchair=false&locale=en";
+		var requestString = "http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=" + coordsDict[0].lat() + "," + coordsDict[0].lng() + "&toPlace=" + coordsDict[1].lat() + "," + coordsDict[1].lng() + "&time=" + jOptions["time"] + "&date=" + jOptions["date"] + "&mode=TRANSIT,WALK&maxWalkDistance=" + jOptions["maxWalk"] + "&arriveBy=" + jOptions["arriveBy"] + "&wheelchair=false&locale=en";
+		console.log(requestString);
+		var response;
+    	var reqHandler = new XMLHttpRequest();
 
-			var response;
-    		var reqHandler = new XMLHttpRequest();
-
- 			reqHandler.addEventListener("load", processRequest(coordsDict, jsonArr, jTable));
-    		reqHandler.open('GET', requestString, true);
-    		reqHandler.send();
+ 		reqHandler.addEventListener("load", processRequest(coordsDict, jsonArr, jTable));
+    	reqHandler.open('GET', requestString, true);
+    	reqHandler.send();
 
     	function processRequest(passedDict, respJSONArr, jTable){
-    		if(reqHandler.status == 200){
+    		console.log(reqHandler.status);
+    		if(reqHandler.status === 200){
+    			console.log("here?");
   				response = JSON.parse(reqHandler.responseText); 
   				respJSONArr.push(respone);
 
@@ -349,15 +405,18 @@
   					SendToOTP(passedDict, respJSONArr, jTable);
   				}
   				else{
-  					setLines();
-  					setMarkers();
+  					//setLines(respJSONArr);
   					printResults(respJSONArr);
   				}
   				console.log(response);
   			}
 		}
 	}
-	
+/*
+	marker o różnym kolorze w zależności od j-table, ikona markera z cyfrą odpowiadającą inputowi.
+	uaktualnianie koodrynatorów
+*/
+
 
 /*
 DEBUG STRING:
