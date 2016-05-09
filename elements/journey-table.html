@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<html>
 <head>
 	<link href="../bower_components/polymer/polymer.html" rel="import">
 	<link href="../bower_components/paper-icon-button/paper-icon-button.html" rel="import">
@@ -24,6 +23,7 @@
 		padding: 0px;
 	}
 	#wholeTable {
+		background-color: var(--bckClr);
 		overflow: hidden;
 		height: auto;
 		margin-top: 10px;
@@ -31,7 +31,7 @@
 		padding: 5px; 
 	}
 	#hourPicker, #minutePicker{
-				width: 25px;
+		width: 25px;
 	}
 	.datePicker {
 		width: 75px;
@@ -66,7 +66,7 @@
 		width: 160px;
 	}
 	#firstColumn {
-		width: 180px;
+		width: 195px;
 		overflow: hidden;
 		float:left;
 	}
@@ -74,7 +74,7 @@
 		margin-top: 33px;
 	}
 	#stopsTable{
-		width: 160px;
+		width: 175px;
 		float: left;
 		overflow: hidden;
 	}
@@ -101,11 +101,11 @@
 		display: none;
 	}
 	.directionsInput {
-		max-width: 160px;
+		max-width: 200px;
 		margin-top: 5px;
 	}
 	paper-material{
-		max-width: 315px;
+		max-width: 330px;
 		width: 100%;
 		margin: 25px auto;
 		position: relative;
@@ -177,15 +177,20 @@
     			var newValue = {StopName: "inputStop" + lastItem, num:lastItem};  
     			this.push('journeyStops', newValue);
     			this.push('swapButtons', newBtnVal);
+    			this.fire('iron-signal', {name: 'heightchanged'});
     		}
     	},
 
     	removeStep: function(){
     		if(this.journeyStops.length > 2){
+    			var inputNum = this.journeyStops.length-1;
+    			var input = "#inputStop" + inputNum.toString();
+
+    			var key = this.$$(input).parentNode.parentNode.parentNode.parentNode.id + this.$$(input).id;
+    			this.fire('iron-signal', {name: 'inputremoved', data:key});
     			this.pop('journeyStops');
     			this.pop('swapButtons');
     		}
-    		//fire iron signal to close pop-up on map
     	},
 
         setCurrentDate: function(){
@@ -194,21 +199,31 @@
 
 		swapInputs: function(e){
 			var tmp;
+			var tableID = this.$$('#inputStop0').parentNode.parentNode.parentNode.parentNode.id;
 			switch(e.target.id){
 				case "swapBtn1":
 					tmp = this.$$('#inputStop1').value;
 					this.$$('#inputStop1').value = this.$$('#inputStop0').value;
 					this.$$('#inputStop0').value = tmp;
+					var key1 = tableID  + 'inputStop0';
+					var key2 = tableID  + 'inputStop1';
+					this.fire('iron-signal', {name: 'inputsswapped', data:[key1,key2]});
 					break;
 				case "swapBtn2":
 					tmp = this.$$('#inputStop2').value;
 					this.$$('#inputStop2').value = this.$$('#inputStop1').value;
 					this.$$('#inputStop1').value = tmp;
+					var key1 = tableID  + 'inputStop1';
+					var key2 = tableID  + 'inputStop2';
+					this.fire('iron-signal', {name: 'inputsswapped', data:[1,2]});
 					break;
 				case "swapBtn3":
 					tmp = this.$$('#inputStop3').value;
 					this.$$('#inputStop3').value = this.$$('#inputStop2').value;
 					this.$$('#inputStop2').value = tmp;
+					var key1 = tableID  + 'inputStop2';
+					var key2 = tableID  + 'inputStop3';
+					this.fire('iron-signal', {name: 'inputsswapped', data:[2,3]});
 					break;	
 			}
 		},
@@ -228,14 +243,8 @@
   				mutations.forEach(function(mutation) {
   					if(mutation.addedNodes.length > 0){
    						document.querySelector('journey-table').fire('iron-signal', {name: 'inputadded', data:mutation.addedNodes[1]});
-  					}
-  				});    
-  				mutations.forEach(function(mutation) {
-  					if(mutation.removedNodes.length > 0){
-  						console.log(mutation.removedNodes);
-   						document.querySelector('journey-table').fire('iron-signal', {name: 'inputremoved', data:mutation.removedNodes[1]});
-  					}
-  				});  
+   					}
+  				});
 			});
 
     		var target = this.$.stopsTable;
