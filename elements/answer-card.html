@@ -9,51 +9,51 @@
 	
 </style>
 <template>
-	<!--<template is="dom-repeat" items="{{journeyPoints}}" as="mainStops">-->
 	<paper-card>
-		<!--<paper-card heading="From: {{journeyPoints.0.From}} To: {{journeyPoints.0.To}}">-->
 			<div class="card-content">
-				<template is="dom-repeat" items="{{journeyDetails}}" as="detail">
-					<div id="oneTrip">
+				<template is="dom-repeat" items="{{journey}}" as="detail">
+                    <div id={{detail.generatedID}}>
+					<div id="oneTrip{{detail.num}}">
 						<div>Linia: {{detail.lineNum}}</div>
 						<div>Przystanek wsiadkowy: {{detail.startName}}</div>
 						<div>Przystanek wysiadkowy: {{detail.stopName}}</div>
 						<div>Czas odjazdu: {{detail.startTime}}</div>
 						<div>Czas podróży: {{detail.timeSpent}}</div>
-						<div>----------------------------------------</div>
 					</div>
+					<div>----------------------------------------</div>
+                    </div>
 				</template>
 			</div>
 	</paper-card>
-	<!--</template>-->
 </template>
 <script>
 	Polymer({
 		is: "answer-card",
     	properties: {
-    		journeyPoints: {
+    		journey:{
     			type: Array,
-    			value: [{From:"Atlantyda", To: "Wiejska"}, {From: "Wiejska", To: "Niegocin"}, {From: "Niegocin", To: "Młociny"}]
-    		},
-    		journeyDetails: {
-    			type: Array,
-    			value: [{lineNum: "189", startTime:"12.30", stopTime:"15.00", stopName: "DD", startName: "DDD", timeSpent: "2h30min"}, 
-    					{lineNum: "M1", startTime:"15.10", stopTime:"16.00", stopName: "DDS", startName: "DD", timeSpent: "50min"}]
+    			value: function(){return [];},
     		}
-    	},
-    	getJPointAtIndex: function(changeRecord, index){
-    		return changeRecord.base[index+1];
     	},
     	boldSignificantStop: function(){
-    		var jDLen = this.journeyDetails.length;
+    		var jDLen = this.journey.length;
     		for(i = 0; i <jDLen ; ++i){
-    			if(this.journeyDetails[i].uProvStop === true)
+    			if(this.journey[i].uProvStop === true)
     			{
-    				
+    				var name = "#oneTrip" + (i+1);
+    				console.log(name);
+    				var tripToBold = this.$$(name);
+    				tripToBold.style.fontWeight = "bold";
     			}
     		}
-    	}
+    	},
+    	attached: function(){
+    		 this.addEventListener("dom-change", function(event){
+               console.log(event);
+               this.boldSignificantStop();
+            });
 
+    	}
     });
 </script>
 </dom-module>

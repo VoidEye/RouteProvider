@@ -23,7 +23,7 @@
 		padding: 0px;
 	}
 	#wholeTable {
-		background-color: var(--bckClr);
+		/*background-color: var(--bckClr);*/
 		overflow: hidden;
 		height: auto;
 		margin-top: 10px;
@@ -123,17 +123,17 @@
     				<input type="text" id="{{item.StopName}}" class="directionsInput">
     			</template>	
     		<div id="stopButtons">
-    			<paper-button raised id="stepAdder" on-click="addStep"> 
+    			<paper-button raised id="stepAdder" on-tap="addStep"> 
     				<iron-icon id"addStepIcon" icon="add"></iron-icon>
     			</paper-button>
-    			<paper-button raised id="stepRemover" on-click="removeStep"> 
+    			<paper-button raised id="stepRemover" on-tap="removeStep"> 
     				<iron-icon id"removeStepIcon" icon="block"></iron-icon>
     			</paper-button>
     		</div>
     		</div>
     		<div id="buttons">
     			<template is="dom-repeat" items="{{swapButtons}}">
-    				<img src="../images/swap.jpg" id="{{item}}" on-click="swapInputs" class="swapButtons"/>
+    				<img src="../images/swap.jpg" id="{{item}}" on-tap="swapInputs" class="swapButtons"/>
     			</template>
     		</div>
     	</div>
@@ -141,7 +141,7 @@
     		<input type="text" id={{datepickerid}} class="datePicker">
 			<input type="text" id="hourPicker">:<input type="text" id="minutePicker">
 			<paper-checkbox id="departure">Przyjazd</paper-checkbox>
-				<paper-button id="getToday" on-click="setCurrentDate"><iron-icon id="getNowIc" icon="query-builder"></iron-icon></paper-button>
+				<paper-button id="getToday" on-tap="setCurrentDate"><iron-icon id="getNowIc" icon="query-builder"></iron-icon></paper-button>
 			Trasa piechotą:
 			<input type="text" id="maxWalk">
 		</div>
@@ -177,7 +177,8 @@
     			var newValue = {StopName: "inputStop" + lastItem, num:lastItem};  
     			this.push('journeyStops', newValue);
     			this.push('swapButtons', newBtnVal);
-    			this.fire('iron-signal', {name: 'heightchanged'});
+    			var tableID = this.$.wholeTable.parentNode.id;
+    			this.fire('iron-signal', {name: 'heightchanged', data:{id: tableID,flag: true}});
     		}
     	},
 
@@ -190,6 +191,9 @@
     			this.fire('iron-signal', {name: 'inputremoved', data:key});
     			this.pop('journeyStops');
     			this.pop('swapButtons');
+    			this.fire('iron-signal', {name: 'heightchanged', data:false});
+    			var tableID = this.$.wholeTable.parentNode.id;
+    			this.fire('iron-signal', {name: 'heightchanged', data:{id: tableID,flag: false}});
     		}
     	},
 
@@ -238,6 +242,11 @@
            			$(".ui-datepicker").css('font-size', 12) 
     			}
     		});
+
+    		if(this.$.wholeTable.parentNode.id != 'jTid0'){
+    			this.fire('iron-signal', {name: 'inputadded', data:this.$$('#inputStop0')});
+    			this.fire('iron-signal', {name: 'inputadded', data:this.$$('#inputStop1')});
+    		}
     		
     		var observer = new MutationObserver(function(mutations) {
   				mutations.forEach(function(mutation) {

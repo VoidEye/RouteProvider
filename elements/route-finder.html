@@ -5,8 +5,6 @@
 	<link href="../bower_components/paper-header-panel/paper-header-panel.html" rel="import">
 	<link href="../bower_components/paper-toolbar/paper-toolbar.html" rel="import">
 	<link href="../bower_components/paper-icon-button/paper-icon-button.html" rel="import">
-	<link href="../bower_components/paper-material/paper-material.html" rel="import">
-	<link href="../bower_components/paper-menu/paper-menu.html" rel="import">	
 	<link href="../bower_components/paper-item/paper-item.html" rel="import">
 	<link href="../bower_components/paper-input/paper-input.html" rel="import">
 	<link href="../bower_components/paper-fab/paper-fab.html" rel="import">
@@ -16,6 +14,9 @@
 	<link href="../bower_components/google-map/google-map.html" rel="import">
 	<link href="../bower_components/iron-signals/iron-signals.html" rel="import">
 	<link href="../bower_components/iron-collapse/iron-collapse.html" rel="import">
+	<link href="../bower_components/paper-tabs/paper-tabs.html" rel="import">
+	<link href="../bower_components/iron-pages/iron-pages.html" rel="import">
+
 	<link rel="import" href="../bower_components/iron-icons/maps-icons.html">
 
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
@@ -44,6 +45,11 @@
 			width: 40px;
 			height: 30px;
 		}
+		.geoButton{
+			position: absolute;
+			top: 65px;
+			left: 150px;
+		}
 		.jTableBtns{
 			background-color: grey;
 			height: 25px;
@@ -56,16 +62,19 @@
 			display: table;
 			clear: both;
 		}
-		#jTid0{
+		#jTid0/*, #ansBtn0*/{
 			--bckClr: red;
+			background-color: red; 
 
 		}
-		#jTid1{
+		#jTid1/*, #ansBtn1*/{
 			--bckClr: green;
+			background-color: green; 
 
 		}
-		#jTid2{
+		#jTid2/*, #ansBtn2*/{
 			--bckClr: blue;
+			background-color: blue; 
 		}
 		#geoLocBtn{
 			color: blue;
@@ -87,15 +96,29 @@
         	width: 100%;
         	text-align: left;
       	}
+      	.paper-header{
+      		color: black;
+			background: #C7EDFF;
+			width: 100%;
+			overflow: visible;
+			min-height: 143px;
+			height: auto;
+      	}
 		paper-header-panel{
 			color: black;
 			background: #C7EDFF;
 			width: 100%;
 			overflow: visible;
-			min-height: 200px;
+			min-height: 145px;
 			height: auto;
+			--paper-header-panel-shadow: {
+      			height: 6px;
+     			bottom: -6px;
+      			box-shadow: inset 0px 5px 6px -3px rgba(0, 0, 0, 0.4);
+  			};
 		}
 		paper-drawer-panel{
+			height: 100vh;
 			position: relative;
 			--paper-drawer-panel-main-container: {
 				background-color: C7EDFF;
@@ -104,44 +127,61 @@
 				background-color: #91DBFF;
 			};
 		}
+		paper-tabs{
+			width: 70%;
+    		position: relative;
+    		margin-left: 45px;
+		}
+		#journeyRemove{
+			position: absolute;
+    		top: 30;
+		}
+		#journeyAdder{
+			position: absolute;
+    		right: 10;
+    		top: 30;
+		}
 	</style>
   
 	<template>
-		<paper-header-panel class="clearfix">
-			<div id="jouTables">
-			<!--<div id="mainTopPanel" class="paper-header">-->
-				<template id="journeyTableT" is="dom-repeat" items="{{jTables}}">
-					<div class="oneJourney">	
-						<journey-table id="{{item.htmlID}}" datepickerid="{{item.dpID}}" class="jTabC"></journey-table>
-						<paper-icon-button icon="maps:my-location" id="geoLocBtn"  on-click="geoLocate" journey-number$="{{item.num}}">
-						</paper-icon-button>
-						<paper-fab id="{{item.mainButtonID}}" icon="icons:reply" on-click="forwardRequest" journey-number$="{{item.num}}" class="mainButton">
-						</paper-fab>
-					</div>
-				</template>
-			</div>
-				<div id="addTableDiv">
-					<paper-button raised id="journeyAdder" class="jTableBtns" on-click="addTable"> 
-    					<iron-icon id"addStepIcon" icon="add"></iron-icon></paper-button>
-    				<paper-button raised id="journeyRemove" class="jTableBtns" on-click="removeTable"> 
-    					<iron-icon id="addStepIcon" icon="block"></iron-icon></paper-button>
-				</div>
-			<!--</div>-->    					
-		</paper-header-panel>
-		<paper-drawer-panel drawer-width="400px">
-			<template is="dom-if" if="{{responseParsed}}">
-			<div drawer>
-				<template is="dom-repeat" items="{{passToAnswerArr}}">
-					<button on-click="toggle" class="heading" j-num$="{{item.num}}">From: {{item.from}} To: {{item.to}}</button>
-					<iron-collapse id="collapse{{item.num}}">
-  						<div><answer-card></answer-card></div>
-					</iron-collapse>
-				</template>
+	<paper-drawer-panel drawer-width="350px">
+		<paper-header-panel drawer class="clearfix">
+		<div>
+		<paper-button raised id="journeyRemove" class="jTableBtns" on-tap="removeTable">
+    				<iron-icon id="addStepIcon" icon="block"></iron-icon>
+    			</paper-button>
+		<paper-tabs selected="{{selected}}">
+			<template is="dom-repeat" items="{{jTables}}">
+				<paper-tab>Journey {{item.num}}</paper-tab>
 			</template>
-			<div main>
-				<google-map api-key="AIzaSyDaDW6auCLExulkcDpkRveDXXIr6dP6t_Y" id="warsawMap" latitude="52.2297" longitude="21.0122" zoom="12" click-events="true" mouse-events="true"></google-map>
-			</div>
-		</paper-drawer-panel> 
+		</paper-tabs>
+		<paper-button raised id="journeyAdder" class="jTableBtns" on-tap="addTable" >
+			<iron-icon id"addStepIcon" icon="add"></iron-icon>
+		</paper-button>
+		</div>
+		<iron-pages selected="{{selected}}" id="journeyPages">
+			<template is="dom-repeat" items="{{jTables}}">
+				<div class="oneJourney">	
+					<journey-table id="{{item.htmlID}}" datepickerid="{{item.dpID}}" class="jTabC"></journey-table>
+					<paper-icon-button icon="maps:my-location" id="geoLocBtn" class="geoButton" on-tap="geoLocate" journey-number$="{{item.num}}"></paper-icon-button>
+					<paper-fab id="{{item.mainButtonID}}" icon="icons:send" on-tap="forwardRequest" journey-number$="{{item.num}}" class="mainButton"></paper-fab>
+						
+					<template is="dom-if" if="{{responseParsed}}">
+						<button on-tap="toggle" id="ansBtn{{item.num}}" class="heading" j-num$="{{item.num}}">From: {{item.answer.from}} To: {{item.answer.to}}</button>
+						<iron-collapse id="collapse{{item.num}}">
+  							<div><answer-card id="{{item.answer.from}}" journey="{{item.answer.details}}"></answer-card></div>
+						</iron-collapse>
+					</template>
+				</div>
+			</template>
+		</iron-pages>	
+		</paper-header-panel>
+
+		<paper-header-panel main>
+			<google-map api-key="AIzaSyDaDW6auCLExulkcDpkRveDXXIr6dP6t_Y" id="warsawMap" latitude="52.2297" longitude="21.0122" zoom="12" click-events="true" mouse-events="true"></google-map>
+		</paper-header-panel>
+	</paper-drawer-panel> 
+
 		<iron-signals on-iron-signal-inputadded="initAutoComplete"></iron-signals>
 		<iron-signals on-iron-signal-inputremoved="hideMarker"></iron-signals>
 		<iron-signals on-iron-signal-heightchanged="adjustHeights"></iron-signals>
@@ -153,9 +193,16 @@
     is: "route-finder",
 
     properties: {
+    	selected:{
+    		type: Number,
+    		value: 0
+    	},
     	jTables: {
     		type: Array,
-    		value:[ {htmlID: "jTid0", num:  0, mainButtonID: "mB0", dpID: "datePicker0"}]
+    		value:[ {htmlID: "jTid0", num:  0, mainButtonID: "mB0", dpID: "datePicker0", answer:{from: "Wiejska", to:"Księżyc", 
+    					details: 
+    						[{lineNum: "513", startTime:"18.30", stopTime:"12.00", stopName: "asd", startName: "dsa", timeSpent: "7h31min", uProvStop: true, num: 1, generatedID: "jTid0513"}, 
+    						{lineNum: "522", startTime:"15.30", stopTime:"12.00", stopName: "asd", startName: "dsa", timeSpent: "7h31min", uProvStop: false, num: 2, generatedID: "jTid0522"}]}}]
     	},
     	infWind:{
     		type: Object,
@@ -169,13 +216,13 @@
     		type: Boolean,
     		value: true
     	},
-    	numOfTransfers:{
-    		type: Object,
-    		value: function(){return{};}// Transfers for every Route passed from server.
-    	},
     	passToAnswerArr:{
     		type: Array,
-    		value: [{from: "Atlantyda", to:"Wiejska", num: 1},{from: "Wiejska", to:"Księżyc", num: 2}]
+    		value: []
+    	},
+    	polyLines:{
+    		type: Object,
+    		value: function(){return {};}
     	}	
     },
     addTable: function(){
@@ -187,6 +234,9 @@
 	    	var newBID = "mB" + lastItem;
 	    	var newdpID = "datePicker" + lastItem;
 	    	this.push('jTables', {htmlID: newID ,num: lastItem, mainButtonID: newBID, dpID: newdpID});
+	    	this.selected = lastItem;
+	    	this.initAutoComplete();
+	    	this.initAutoComplete();
     	}
     },
     removeTable: function(){
@@ -200,20 +250,43 @@
     			this.hideMarker(key);
     		}	
     		this.pop('jTables');
+    		if(this.selected != 0)
+    			this.selected = this.selected-1;
     	}
+
     },
     toggle: function(e){
     	var jNumber = e.target.getAttribute('j-num');
     	var cID = "#collapse" + jNumber;
     	this.$$(cID).toggle();
     },
-    adjustHeights: function(){
+    adjustHeights: function(data){
     	var btnClassEle = document.querySelectorAll(".mainButton");
-    	//console.log(btnClassEle);
-    	//console.log(btnClassEle[0].style);
-    	//console.log(button.style.top);// += 15;
+    	var geoClassEle = document.querySelectorAll(".geoButton");
+    	for(i = 0; i < btnClassEle.length; ++i)
+    	{
+    		var mainBtn = btnClassEle[i];
+    		var geoBtn = geoClassEle[i];
+    		if(data.detail.id === "jTid"+i && data.detail.flag === true){
+    			mainBtn.style.top = mainBtn.offsetTop + 25;
+    			geoBtn.style.top = geoBtn.offsetTop + 25;
+    		}
+    		else if(data.detail.id === "jTid"+i && data.detail.flag === false){
+    			mainBtn.style.top = mainBtn.offsetTop - 25;
+    			geoBtn.style.top = geoBtn.offsetTop - 25;
+    		}
+    	}
+    	
     },
     forwardRequest: function(e){
+    	var options = {
+			journeyID: "jTid0",
+			lineNum: "513"
+		};
+    	coords = [new google.maps.LatLng(52.23277389083493,20.996074676513672),new google.maps.LatLng(52.23385808088306,21.002168655395508),new google.maps.LatLng(52.23220878734222,21.003166437149048),new google.maps.LatLng(52.22860772634976,21.005237102508545)];
+		this.getDrawingPoints(coords, options);
+
+
     	if(e.target.id === "icon")
     		var jNumber = e.target.parentNode.getAttribute('journey-number');
     	else
@@ -235,7 +308,7 @@
     		}
     	}
     	var jsonArr = [];
-		sendToOTP(coordsDict ,jsonArr ,choosenTab);
+		//sendToOTP(coordsDict ,jsonArr ,choosenTab);
     },
     geoLocate: function(e){
     	if(e.target.id === "icon")
@@ -345,32 +418,24 @@
 					var singlePos = {lat: fStopLat, lng: fStopLng};
 					tripCoords[k] = singlePos;
 					console.log(tripCoords);
-				}//Przystanki przesiadkowe w inputach bolduj, albo coś w tym stylu
-			}
+				}//One answer-card = one journey-table
+				 //In answer-card input stops are bolded
+				 //passToAnswerArr one Array Element = one journey-table
+				 //In Array Element: from: first input to: last input
+			}//clear jTables.answers przy nowym requeście
 			tripArr.push(tripCoords);
+			this.polyLines[jTabID] = [];
+			for(i = 0; i < allLines.length; ++i){
+				this.getDrawingPoints(coords, options);
+			}
 		}
 
 		console.log(tripArr);
-		getDrawingPoints(coords);	
-	},
-	getDrawingPoints: function(coordsBook){
-		$.get('https://roads.googleapis.com/v1/snapToRoads', {
-    		interpolate: true,
-    		key: "AIzaSyDaDW6auCLExulkcDpkRveDXXIr6dP6t_Y",
-    		path: pathValues.join('|')
-  		}, 
-  		function(data){
-    		processSnapToRoadResponse(data);
-  		});
-	},
-	drawTrip: function(snappedPoints){
-		var snappedPolyline = new google.maps.Polyline({
-    		path: snappedCoordinates,
-    		strokeColor: 'black',
-    		strokeWeight: 3
-  		});
-		var map = document.querySelector('google-map').map;
-  		snappedPolyline.setMap(map);
+		coords = [new google.maps.LatLng(52.23277389083493,20.996074676513672),new google.maps.LatLng(52.23385808088306,21.002168655395508),new google.maps.LatLng(52.23220878734222,21.003166437149048),new google.maps.LatLng(52.22860772634976,21.005237102508545)];
+		options = {
+			journeyID: "",
+		}
+		this.getDrawingPoints(coords, options);
 	},
 	setPopUp: function(e){
 		if(this.infWind === undefined ){
@@ -404,7 +469,10 @@
 	ready: function(e){
 		var map = this.$.warsawMap;	
 		map.addEventListener('google-map-rightclick', this.setPopUp);
+		map.addEventListener('google-map-dblclick', this.setPopUp);
 		this.addEventListener('google-map-ready', this.initBasicAutoComp);
+		this.$.journeyPages.addEventListener('iron-select', this.highlightPolyline);
+		this.$.journeyPages.addEventListener('iron-deselect', this.fadePolyline);
 	},
 	initAutoComplete: function(passedInput){
 		var defaultBounds = new google.maps.LatLngBounds(
@@ -448,20 +516,90 @@
 	    			    		document.querySelector('route-finder').setMarker(place, key2, false, "jTid0", inputs[0].id);
 	    	});
   	},
+	getDrawingPoints: function(coordsBook, options){
+		var coordsArr = []
+		for(i = 0; i < coordsBook.length; ++i)
+		{
+			coordsArr.push(coordsBook[i].toUrlValue()); 
+		}	
+		
+		$.get('https://roads.googleapis.com/v1/snapToRoads', {
+    		interpolate: true,
+    		key: "AIzaSyDaDW6auCLExulkcDpkRveDXXIr6dP6t_Y",
+    		path: coordsArr.join('|')
+  		}, 
+  		function(data){
+    		processGoogleSnapToRoadRespone(data, options);
+  		});
+	},
+	drawTrip: function(snappedPoints, options){
+		var lineColor = 'black';
+		switch(options.journeyID){
+			case "jTid0":
+				lineColor = 'red';
+				break;
+			case "jTid1":
+				lineColor = 'green';
+				break;
+			case "jTid2":
+				lineColor = 'blue';
+				break;
+		}
+		var snappedPolyline = new google.maps.Polyline({
+    		path: snappedPoints,
+    		strokeColor: lineColor,
+            strokeOpacity: 0.5,
+            strokeWeight: 5
+  		});
+
+  		if(this.polyLines[options.journeyID] === undefined)
+	    {
+	    	this.polyLines[options.journeyID] = new Array();
+	    }
+
+		this.polyLines[options.journeyID].push({mapLine: snappedPolyline, lineNum: options.lineNum, jTabID: options.journeyID});	
+
+		var map = document.querySelector('google-map').map;
+  		snappedPolyline.setMap(map);
+
+  		google.maps.event.addListener(snappedPolyline, "mouseover", function(event) {
+  				var map = document.querySelector('google-map').map;
+  				document.getElementById(options.journeyID+options.lineNum).style.color = snappedPolyline.strokeColor;
+        });
+  		google.maps.event.addListener(snappedPolyline, 'mouseout', function (event) {
+             document.getElementById(options.journeyID+options.lineNum).style.color = "black";
+         });
+	},
+	highlightPolyline: function(e){
+		var mapLines = document.querySelector("route-finder").polyLines;
+		var ironJTableID = e.detail.item.firstElementChild.id;
+
+		for(i = 0; i < mapLines[ironJTableID].length; ++i){
+			mapLines[e.detail.item.firstElementChild.id][i].mapLine.setOptions({strokeOpacity: 1});
+		}
+	},
+	fadePolyline: function(e){
+		var mapLines = document.querySelector("route-finder").polyLines;
+		var ironJTableID = e.detail.item.firstElementChild.id;
+
+		for(i = 0; i < mapLines[ironJTableID].length; ++i){
+			mapLines[e.detail.item.firstElementChild.id][i].mapLine.setOptions({strokeOpacity: 0.4});
+		}
+	}
   });
 	/*TODO: Odbieranie i ładne wypisywanie odpowiedzi, oraz rysowanie linii między punktami, SetMarker powinien być na enter, po wybraniu lokalizacji.*/	
 	function passTable(passedTable){
 		document.querySelector("route-finder").setIwindowContent(passedTable);
 	}
-	function processGoogleSnapToRoadRespone(responeData){
+	function processGoogleSnapToRoadRespone(responeData, options){
 		var snappedCoordinates = [];  
-  		for (var i = 0; i < data.snappedPoints.length; ++i) {
+  		for (var i = 0; i < responeData.snappedPoints.length; ++i) {
     		var latlng = new google.maps.LatLng(
         		responeData.snappedPoints[i].location.latitude,
         		responeData.snappedPoints[i].location.longitude);
     		snappedCoordinates.push(latlng);
   		}
-  		document.querySelector("route-finder").drawSnappedPolyline(snappedCoordinates);
+  		document.querySelector("route-finder").drawTrip(snappedCoordinates, options);
 	}
 	function passToSetMarker(tableNum, inputNum){
 		rFinder = document.querySelector("route-finder");
@@ -474,6 +612,7 @@
 	function sendToOTP(coordsDict, jsonArr, jTable){	
 		var jOptions = jTable.getOptions();
 		//var requestString = "http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=" + coordsDict[0].lat() + "," + coordsDict[0].lng() + "&toPlace=" + coordsDict[1].lat() + "," + coordsDict[1].lng() + "&time=" + jOptions["time"] + "&date=" + jOptions["date"] + "&mode=TRANSIT,WALK&maxWalkDistance=" + jOptions["maxWalk"] + "&arriveBy=" + jOptions["arriveBy"] + "&wheelchair=false&locale=en";
+
 		var requestString = "http://localhost:8080/otp/routers/default/plan?fromPlace=" + coordsDict[0].lat() + "," + coordsDict[0].lng() + "&toPlace=" + coordsDict[1].lat() + "," + coordsDict[1].lng() + "&time=" + jOptions["time"] + "&date=" + jOptions["date"] + "&mode=TRANSIT%2CWALK&maxWalkDistance=" + jOptions["maxWalk"] + "&arriveBy=" + jOptions["arriveBy"] + "&wheelchair=false&locale=en";
 		console.log(requestString)
 
@@ -554,7 +693,11 @@
   			}
 		}
 	}
-/*
+	/*
+przesuwanie po panelu bocznym -> To chyba zadziała normalnie
+panel górny też raczej zwijany
+drawer zawsze możliwy do zwiniecia, zwłaszcza na mobile średnio to działa.
+
 DEBUG STRING:
 
 http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=52.1836118,20.9790984&toPlace=52.2458726,20.9402570333431&time=2:44pm&date=02-04-2016&mode=TRANSIT,WALK&maxWalkDistance=804.672&arriveBy=false&wheelchair=false&locale=en

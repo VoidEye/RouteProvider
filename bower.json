@@ -32,7 +32,8 @@
     "Sortable": "sortable.js#^1.4.2",
     "iron-signals": "PolymerElements/iron-signals#^1.0.3",
     "paper-dialog": "PolymerElements/paper-dialog#^1.0.4",
-    "google-map": "GoogleWebComponents/google-map#^1.1.10"
+    "google-map": "GoogleWebComponents/google-map#^1.1.10",
+    "web-component-tester": "Polymer/web-component-tester#^4.2.2"
   },
   "resolutions": {
     "moment": "~2.11.1"
