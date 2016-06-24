@@ -1,13 +1,10 @@
 <!DOCTYPE html>
-<html>
 <head>
 	<link href="../bower_components/polymer/polymer.html" rel="import">
 	<link href="../bower_components/paper-drawer-panel/paper-drawer-panel.html" rel="import">
 	<link href="../bower_components/paper-header-panel/paper-header-panel.html" rel="import">
 	<link href="../bower_components/paper-toolbar/paper-toolbar.html" rel="import">
 	<link href="../bower_components/paper-icon-button/paper-icon-button.html" rel="import">
-	<link href="../bower_components/paper-material/paper-material.html" rel="import">
-	<link href="../bower_components/paper-menu/paper-menu.html" rel="import">	
 	<link href="../bower_components/paper-item/paper-item.html" rel="import">
 	<link href="../bower_components/paper-input/paper-input.html" rel="import">
 	<link href="../bower_components/paper-fab/paper-fab.html" rel="import">
@@ -16,18 +13,16 @@
 	<link href="../bower_components/paper-card/paper-card.html" rel="import">
 	<link href="../bower_components/google-map/google-map.html" rel="import">
 	<link href="../bower_components/iron-signals/iron-signals.html" rel="import">
-	
+	<link href="../bower_components/iron-collapse/iron-collapse.html" rel="import">
+	<link href="../bower_components/paper-tabs/paper-tabs.html" rel="import">
+	<link href="../bower_components/iron-pages/iron-pages.html" rel="import">
+
+	<link rel="import" href="../bower_components/iron-icons/maps-icons.html">
 
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 	<script src="//code.jquery.com/jquery-2.2.2.js"></script>
   	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-
-	<link rel="stylesheet" href="../leaflet/leaflet.css" />
-	<script src="../leaflet/leaflet.js"></script>
-	<script src="../leaflet/leaflet-src.js"></script>
-
-	<link rel="stylesheet" href="../ControlGeoCoder/Control.Geocoder.css" />
-	<script src="../ControlGeoCoder/Control.Geocoder.js"></script>
+	<link href="answer-card.html" rel="import">
 	<link href="journey-table.html" rel="import">
 
 </head>
@@ -39,13 +34,21 @@
 			min-height: 100px;
 		}
 		.oneJourney{
+			position: relative;
 			float: left;
 			width: 350px;
 		}
 		.mainButton{
+			position: absolute;
+			top: 85px;
+			right: 15px;
 			width: 40px;
 			height: 30px;
-			float: right;
+		}
+		.geoButton{
+			position: absolute;
+			top: 65px;
+			left: 150px;
 		}
 		.jTableBtns{
 			background-color: grey;
@@ -59,66 +62,139 @@
 			display: table;
 			clear: both;
 		}
-		paper-header-panel{
-			color: black;
+		#ansBtn0, #ansCard0, #mB0, #jTid0{
+			--bckClr: #009688;
+			background-color: #009688; 
+		}
+		#ansBtn1, #ansCard1, #mB1, #jTid1{
+			--bckClr:#727272;
+			background-color:#727272; 
+
+		}
+		#ansBtn2, #ansCard2, #mB2, #jTid2{
+			--bckClr: #607D8B;
+			background-color: #607D8B; 
+		}
+		#tab0{
+			color: #009688;
+		}
+		#tab1{
+			color: #727272;
+		}
+		#tab2{
+			color: #607D8B;
+		}
+		#geoLocBtn{
+			color: blue;
+		}
+		.jTabC{
+			position: relative;
+			top: 0;
+			left: 0;
+		}
+      	.heading {
+        	padding: 10px 15px;
+        	background-color: #f3f3f3;
+        	border: 1px solid #dedede;
+	        border-top-left-radius: 5px;
+        	border-top-right-radius: 5px;
+        	font-size: 14px;
+        	cursor: pointer;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        	width: 100%;
+        	text-align: left;
+      	}
+      	.paper-header{
+      		color: black;
 			background: #C7EDFF;
 			width: 100%;
 			overflow: visible;
-			min-height: 200px;
+			min-height: 143px;
 			height: auto;
+      	}
+		paper-header-panel{
+			color: black;
+			/*background: #C7EDFF;*/
+			/*background: white;*/
+			width: 100%;
+			overflow: visible;
+			min-height: 145px;
+			height: auto;
+			--paper-header-panel-shadow: {
+      			height: 6px;
+     			bottom: -6px;
+      			box-shadow: inset 0px 5px 6px -3px rgba(0, 0, 0, 0.4);
+  			};
 		}
 		paper-drawer-panel{
+			height: 100vh;
 			position: relative;
 			--paper-drawer-panel-main-container: {
-				background-color: C7EDFF;
+				background-color: #C7EDFF;
 			};
 			--paper-drawer-panel-left-drawer-container: {
-				background-color: #91DBFF;
+				background-color: #BBDEFB;
 			};
+		}
+		paper-tabs{
+			width: 70%;
+    		position: relative;
+    		margin-left: 45px;
+		}
+		#journeyRemove{
+			position: absolute;
+    		top: 30;
+		}
+		#journeyAdder{
+			position: absolute;
+    		right: 10;
+    		top: 30;
 		}
 	</style>
   
 	<template>
-		<paper-header-panel class="clearfix">
-			<div id="jouTables">
-			<!--<div id="mainTopPanel" class="paper-header">-->
-				<template id="journeyTableT" is="dom-repeat" items="{{jTables}}">
-					<div class="oneJourney">	
-						<journey-table id="{{item.htmlID}}" datepickerid="{{item.dpID}}"></journey-table>
-						<paper-fab id="{{item.mainButtonID}}" icon="icons:reply" on-click="forwardRequest" journey-number$="{{item.num}}" class="mainButton"></paper-fab>
-					</div>
-				</template>
-			</div>
-				<div id="addTableDiv">
-					<paper-button raised id="journeyAdder" class="jTableBtns" on-click="addTable"> 
-    					<iron-icon id"addStepIcon" icon="add"></iron-icon></paper-button>
-    				<paper-button raised id="journeyRemove" class="jTableBtns" on-click="removeTable"> 
-    					<iron-icon id="addStepIcon" icon="block"></iron-icon></paper-button>
+	<paper-drawer-panel drawer-width="350px">
+		<paper-header-panel drawer class="clearfix">
+		<div>
+		<paper-button raised id="journeyRemove" class="jTableBtns" on-tap="removeTable">
+    				<iron-icon id="addStepIcon" icon="icons:remove"></iron-icon>
+    			</paper-button>
+		<paper-tabs selected="{{selected}}">
+			<template is="dom-repeat" items="{{jTables}}">
+				<paper-tab id="tab{{item.num}}">Trasa {{displayIndex(index)}}</paper-tab>
+			</template>
+		</paper-tabs>
+		<paper-button raised id="journeyAdder" class="jTableBtns" on-tap="addTable" >
+			<iron-icon id"addStepIcon" icon="add"></iron-icon>
+		</paper-button>
+		</div>
+		<iron-pages selected="{{selected}}" id="journeyPages">
+			<template is="dom-repeat" items="{{jTables}}">
+				<div class="oneJourney">	
+					<journey-table id="{{item.htmlID}}" datepickerid="{{item.dpID}}" class="jTabC"></journey-table>
+					<paper-icon-button icon="maps:my-location" id="geoLocBtn" class="geoButton" on-tap="geoLocate" journey-number$="{{item.num}}"></paper-icon-button>
+					<paper-fab id="{{item.mainButtonID}}" icon="icons:send" on-tap="forwardRequest" journey-number$="{{item.num}}" class="mainButton"></paper-fab>
+						
+					<template is="dom-if" if="{{responseParsed}}">
+						<button on-tap="toggle" id="ansBtn{{item.num}}" class="heading" j-num$="{{item.num}}">From: {{item.answer.from}} To: {{item.answer.to}}</button>
+						<iron-collapse id="collapse{{item.num}}">
+  							<div><answer-card id="ansCard{{item.num}}" journey="{{item.answer.details}}"></answer-card></div>
+						</iron-collapse>
+					</template>
 				</div>
-			<!--</div>-->    					
+			</template>
+		</iron-pages>	
 		</paper-header-panel>
-		<paper-drawer-panel>
-			<div drawer>
-				<paper-card heading="Card Title">
- 	 				<div class="card-content">Some content</div>
-  					<div class="card-actions">
-    					<paper-button>Some action</paper-button>
-  					</div>
-				</paper-card>
-				<paper-card heading="Card Title">
-  					<div class="card-content">Some content</div>
 
-  					<div class="card-actions">
-    					<paper-button>Some action</paper-button>
-  					</div>
-				</paper-card>
-			</div>
-			<div main>
-				<google-map api-key="AIzaSyDaDW6auCLExulkcDpkRveDXXIr6dP6t_Y" id="warsawMap" latitude="52.2297" longitude="21.0122" zoom="12" click-events="true" mouse-events="true"></google-map>
-			</div>
-		</paper-drawer-panel> 
+		<paper-header-panel main>
+			<google-map api-key="AIzaSyDaDW6auCLExulkcDpkRveDXXIr6dP6t_Y" id="warsawMap" latitude="52.2297" longitude="21.0122" zoom="12" click-events="true" mouse-events="true"></google-map>
+		</paper-header-panel>
+	</paper-drawer-panel> 
+
 		<iron-signals on-iron-signal-inputadded="initAutoComplete"></iron-signals>
 		<iron-signals on-iron-signal-inputremoved="hideMarker"></iron-signals>
+		<iron-signals on-iron-signal-heightchanged="adjustHeights"></iron-signals>
+		<iron-signals on-iron-signal-inputsswapped="swapMarkers"></iron-signals>
 	</template>
 
 <script>
@@ -126,9 +202,20 @@
     is: "route-finder",
 
     properties: {
+    	selected:{
+    		type: Number,
+    		value: 0
+    	},
     	jTables: {
     		type: Array,
-    		value:[ {htmlID: "jTid0", num:  0, mainButtonID: "mB0", dpID: "datePicker0"}]
+    		value:[ {htmlID: "jTid0", num:  0, mainButtonID: "mB0", dpID: "datePicker0", answer:{from: "Wiejska", to:"Księżyc", 
+    					details: 
+    						[{lineNum: "513", startTime:"18.30", stopTime:"12.00", stopName: "Dworzec Centralny", startName: "Wiejska", timeSpent: "7h31min", uProvStop: true, num: 1, generatedID: "jTid0513"}, 
+    						{lineNum: "522", startTime:"15.30", stopTime:"12.00", stopName: "Dworzec Centralny", startName: "Lotnisko Chopina", timeSpent: "7h31min", uProvStop: false, num: 2, generatedID: "jTid0522"}
+    						]}},
+    				{htmlID: "jTid1", num:  1, mainButtonID: "mB1", dpID: "datePicker1", answer:{from: "Racławicka", to:"Plac Wilsona", 
+    					details: 
+    						[{lineNum: "175", startTime:"19.00", stopTime:"20.00", stopName: "Plac Wilsona", startName: "Racławicka", timeSpent: "1h00min", uProvStop: true, num: 1, generatedID: "jTid1175"}]}}]
     	},
     	infWind:{
     		type: Object,
@@ -137,22 +224,97 @@
     	markers:{
     		type: Object,
     		value: function(){return {};}
+    	},
+    	responseParsed:{
+    		type: Boolean,
+    		value: true
+    	},
+    	passToAnswerArr:{
+    		type: Array,
+    		value: []
+    	},
+    	polyLines:{
+    		type: Object,
+    		value: function(){return {};}
     	}	
     },
+    displayIndex: function(index){
+    	return index + 1;
+    },
     addTable: function(){
-    	var lastItem = this.jTables[this.jTables.length-1];
-    	lastItem = 1 + lastItem.num;
-    	var newID = "jTid" + lastItem;
-    	var newBID = "mB" + lastItem;
-    	var newdpID = "datePicker" + lastItem;
-    	this.push('jTables', {htmlID: newID ,num: lastItem, mainButtonID: newBID, dpID: newdpID});
+    	if(this.jTables.length < 3)
+    	{
+	    	var lastItem = this.jTables[this.jTables.length-1];
+	    	lastItem = 1 + lastItem.num;
+	    	var newID = "jTid" + lastItem;
+	    	var newBID = "mB" + lastItem;
+	    	var newdpID = "datePicker" + lastItem;
+	    	this.push('jTables', {htmlID: newID ,num: lastItem, mainButtonID: newBID, dpID: newdpID});
+	    	this.selected = lastItem;
+	    	this.initAutoComplete();
+	    	this.initAutoComplete();
+    	}
     },
     removeTable: function(){
-    	if(this.jTables.length > 1)
+    	if(this.jTables.length > 1){
+    		var jTabID = this.jTables[this.jTables.length-1].htmlID;
+    		var inputs = document.getElementById(jTabID).getInputs();
+    		var key = {detail: ""};
+
+    		for(i = 0; i < inputs.length; ++i){
+    			key.detail = jTabID + inputs[i].id;
+    			this.hideMarker(key);
+    		}	
     		this.pop('jTables');
+    		if(this.selected != 0)
+    			this.selected = this.selected-1;
+    	}
+
+    },
+    toggle: function(e){
+    	var jNumber = e.target.getAttribute('j-num');
+    	var cID = "#collapse" + jNumber;
+    	this.$$(cID).toggle();
+    },
+    adjustHeights: function(data){
+    	var btnClassEle = document.querySelectorAll(".mainButton");
+    	var geoClassEle = document.querySelectorAll(".geoButton");
+    	for(i = 0; i < btnClassEle.length; ++i)
+    	{
+    		var mainBtn = btnClassEle[i];
+    		var geoBtn = geoClassEle[i];
+    		if(data.detail.id === "jTid"+i && data.detail.flag === true){
+    			mainBtn.style.top = mainBtn.offsetTop + 25;
+    			geoBtn.style.top = geoBtn.offsetTop + 25;
+    		}
+    		else if(data.detail.id === "jTid"+i && data.detail.flag === false){
+    			mainBtn.style.top = mainBtn.offsetTop - 25;
+    			geoBtn.style.top = geoBtn.offsetTop - 25;
+    		}
+    	}
+    	
     },
     forwardRequest: function(e){
-    	var geocoder = new L.Control.Geocoder.Nominatim();
+    	var options = {
+			journeyID: "jTid0",
+			lineNum: "513"
+		};
+    	coords = [new google.maps.LatLng(52.23277389083493,20.996074676513672),new google.maps.LatLng(52.23385808088306,21.002168655395508),new google.maps.LatLng(52.23220878734222,21.003166437149048),new google.maps.LatLng(52.22860772634976,21.005237102508545)];
+		this.getDrawingPoints(coords, options);
+
+		var options2 = {
+			journeyID: "jTid1",
+			lineNum: "175"
+		};
+    	coords = [new google.maps.LatLng(52.22500308721276,20.990522503852844),new google.maps.LatLng(52.227746845516855,21.002812385559082),new google.maps.LatLng(52.22979716018817,21.011953353881836),new google.maps.LatLng(52.22585416331698,21.014485359191895)];
+		this.getDrawingPoints(coords, options2);
+		var options3 = {
+			journeyID: "jTid2",
+			lineNum: "128"
+		};
+    	coords = [new google.maps.LatLng(52.253526602684126,21.035685539245605),new google.maps.LatLng(52.247641412738844,21.047658920288086),new google.maps.LatLng(52.2376821034406,21.051220893859863)];
+		this.getDrawingPoints(coords, options3);
+
     	if(e.target.id === "icon")
     		var jNumber = e.target.parentNode.getAttribute('journey-number');
     	else
@@ -164,60 +326,59 @@
     	var coordsDict = {};
 
 		for(i = 0; i < inputs.length; ++i){
-    		if (/[a-z]/i.test(inputs[i]) === true){
-    			key = chTabID + inputs[i].id;
+    		if (/[a-z]/i.test(inputs[i].value) === true){
+    			var key = chTabID + inputs[i].id;
     			coordsDict[i] = this.markers[key].position;
+    		}
+    		else{
+    			var latLng = inputs[i].value.split(",");
+    			coordsDict[i] = new google.maps.LatLng(latLng[0], latLng[1]);
     		}
     	}
     	var jsonArr = [];
-		sendToOTP(coordsDict ,jsonArr ,choosenTab);
-    	/*
-    	for(i = 0; i < inputs.length; ++i){
-    		var inputAdress = inputs[i];	
+		//sendToOTP(coordsDict ,jsonArr ,choosenTab);
+    },
+    geoLocate: function(e){
+    	if(e.target.id === "icon")
+    		var jNumber = e.target.parentNode.getAttribute('journey-number');
+    	else
+    		var jNumber = e.target.getAttribute('journey-number');
+    	var chTabID = "jTid" + jNumber;
+    	var choosenTab = document.getElementById(chTabID);
+    	var inputs = choosenTab.getInputs(); 
 
-	 		if (/[a-z]/i.test(inputAdress) === true){
-    			geocoder.geocode(inputAdress, accCoordsWrapper(i, coordsDict, choosenTab));
-    		}
-    		else{
-    			var cordsArr = inputAdress.split(",");
-    			var toPass = [];
-    				toPass[0] = {
-    				name: "",
-    				center: L.latLng(cordsArr[0], cordsArr[1])
-    			}
-    			accCoordsWrapper(toPass);
-    		}	
-	 	}
-		
-	 	function accCoordsWrapper(key, coordsDict, pChoosenTab) {
-	 		function accCoordsInner(results) {
-		 		var latLng = new L.LatLng(results[0].center.lat, results[0].center.lng);
-	       		var startName = results[0].name;
-		 		coordsDict[key] = {latLng};
-		 		if(Object.keys(coordsDict).length === inputs.length)
-		 		{
-		 			var jsonArr = [];
-		 			sendToOTP(coordsDict ,jsonArr ,pChoosenTab);
-		 		}
-		 	}	
-		 	return accCoordsInner;
-	 	}
-	 	*/
+    	if (navigator.geolocation){
+        	navigator.geolocation.getCurrentPosition(function(position){
+        		var pos = new google.maps.LatLng(position.coords.latitude,position.coords.longitude);
+            	key = chTabID + inputs[0].id;
+
+            	var map = document.querySelector('google-map').map;
+            	document.querySelector("route-finder").setMarker(pos, key, true, chTabID, inputs[0].id);
+            	map.setCenter(pos);
+        	});
+      	}
+      	else {
+          // Browser doesn't support Geolocation
+        	window.alert("Couldn't geolocate your position. You can try different browser");
+      	}
     },
 
-	/*{	przy kliknięciu guzika szukać trasy
-		Czyli:
-		Dać możliwość wprowadzania koordynatorów zamiast nazw
-	},*/
-	setMarker: function(adress, key, fromPopUp){
+	setMarker: function(adress, key, fromPopUp, jTabid, inputID){
 		if(this.markers[key] === undefined)
 	    {
+	    	var image = '../images/'+ jTabid + '/' + inputID + 'marker.png';
 	    	var marker = new google.maps.Marker({
 	    		draggable: true,
-	    		position: {lat: 0, lng: 0}}); 
+	    		position: {lat: 0, lng: 0},
+	    		icon: image}); 
 	    	this.markers[key] = marker;
+
 	    	this.markers[key].addListener('dragend',function(e) {
-	    		 console.log(e.latLng.lat());
+	    		 var jTabInputs = document.getElementById(jTabid).getInputs();
+	    		 for(i = 0; i < jTabInputs.length; ++i){
+	    		 	if(jTabInputs[i].id === inputID)
+	    		 		jTabInputs[i].value = e.latLng.lat() + "," + e.latLng.lng();
+	    		 }
 	    	});
 	    }
 
@@ -226,69 +387,83 @@
 
 		if(!fromPopUp)
 			this.markers[key].setPosition(adress.geometry.location);
-		else
+		else{
+			//Ustawianie tekstu w textboxie nie powinno tutaj być.
+			var jTabInputs = document.getElementById(jTabid).getInputs();
+			for(i = 0; i < jTabInputs.length; ++i){
+	    		 	if(jTabInputs[i].id === inputID)
+	    		 		jTabInputs[i].value = adress.lat() + "," + adress.lng();;
+	    		 }
 			this.markers[key].setPosition(adress);
-	},
-	hideMarker: function(passedInput){
-		console.log(passedInput.detail);
-		if(passedInput[0] != undefined)
-		{
-			console.log("adf");
-			var key = passedInput.detail.parentNode.parentNode.parentNode.parentNode.id + passedInput.detail.id;
-
-			markers[key].setMap(null);
 		}
+	},
+	swapMarkers: function(inKeyList){
+		var tmp = this.markers[inKeyList.detail[0]].position;
+		this.markers[inKeyList.detail[0]].setPosition(this.markers[inKeyList.detail[1]].position);
+		this.markers[inKeyList.detail[1]].setPosition(tmp);
+	},
+	hideMarker: function(passedKey){
+		if(this.markers[passedKey.detail] != undefined)
+			this.markers[passedKey.detail].setMap(null);
 	},
 	printResults: function(jResp){
 		//var d = new Date(0);
 		//d.setUTCSeconds(journeyDate);
-		var startStop = jResp.plan.from.name;
-		var endStop = jResp.plan.to.name;
+		console.log(jResp);
+		var tripCoords = {};
+		var tripArr = [];
 
-		for(i = 0; i < jResp.plan.itineraries.length; ++i){
-			//pack all variables in some div/PolymerObject?
-			//So I could pre-define polymer-element,
-			//Call on it upon button press
-			//Fill it with variables upn reciving an answer.
-			//To do this, I need to know what kind, and how many variables there will be.
-			/*
-			* Tworzyć za pomocą dom-ifa karty/nagłówki
-			* Karto-nagłówki winny być osobnymi polymero-elementami
-			* Pakowanie danych do tych elementów: Przesłać obiekt z danymi z tej funkcji
-			* Np. funkcja 'setParametres' która przyjmuje obiekt i później wszystko ładnie uzupełnia.
-			* Okej, to na dom-if potrzebna jest zmienna, Czy da się ją ustawiać spoza polymerowego scopa?
-			* Czy da się wywołać funkcje(tą) spoza polymero-scopa do elementu w dom-if? 
-			*/
-			var travelDuration = jResp.plan.itineraries[i].duration;
-			var travelTimeEnd = jResp.plan.itineraries[i].endTime;
-			var travelTImeBegin = jResp.plan.itineraries[i].startTime;
-			var transfers = jResp.plan.itineraries[i].transfers;
-			var transitTime = jResp.plan.itineraries[i].transitTime;
-			var waitingTime = jResp.plan.itineraries[i].waitingTime;
-			var approxWalkTime = jResp.plan.itineraries[i].walkTime;
-			var walkDistance = jResp.plan.itineraries[i].walkDistance;
-			
-			for(j = 0; j < jResp.plan.itineraries[i].legs.length; ++j){
-				var phaseDistance = jResp.plan.itineraries[i].legs[j].distance;
-				var phaseTime = jResp.plan.itineraries[i].legs[j].duraton;
-				var phaseEndTime = jResp.plan.itineraries[i].legs[j].endTime;
-				var phaseStartTime = jResp.plan.itineraries[i].legs[j].startTime;
-				var route = jResp.plan.itineraries[i].legs[j].route;
-				var routeLongName = jResp.plan.itineraries[i].legs[j].routeLongName;
-				var mode = jResp.plan.itineraries[i].legs[j].mode;
-				var from = jResp.plan.itineraries[i].legs[j].from.name;
-				var fArrival = jResp.plan.itineraries[i].legs[j].from.arrival;
-				var fDeparture = jResp.plan.itineraries[i].legs[j].from.departure;
-				var fStopLat = jResp.plan.itineraries[i].legs[j].from.lat;
-				var fStopLng = jResp.plan.itineraries[i].legs[j].from.lon;
-				var to = jResp.plan.itineraries[i].legs[j].to.name;
-				var toArrival = jResp.plan.itineraries[i].legs[j].to.arrival;
-				var toDeparture = jResp.plan.itineraries[i].legs[j].to.departure;
-				var toStopLat = jResp.plan.itineraries[i].legs[j].to.lat;
-				var toStopLng = jResp.plan.itineraries[i].legs[j].to.lon;
-				console.log(from + " i= " + i + " j= " + j); 
+		for(i = 0; i < jResp.length; ++i){
+			for(j = 0; j < jResp[i].plan.itineraries.length; ++j){
+				var travelDuration = jResp[i].plan.itineraries[j].duration;
+				var travelTimeEnd = jResp[i].plan.itineraries[j].endTime;
+				var travelTImeBegin = jResp[i].plan.itineraries[j].startTime;
+				var transfers = jResp[i].plan.itineraries[j].transfers;
+				var transitTime = jResp[i].plan.itineraries[j].transitTime;
+				var waitingTime = jResp[i].plan.itineraries[j].waitingTime;
+				var approxWalkTime = jResp[i].plan.itineraries[j].walkTime;
+				var walkDistance = jResp[i].plan.itineraries[j].walkDistance;
+				
+				for(k = 0; k < jResp[i].plan.itineraries[j].legs.length; ++k){
+					var phaseDistance = jResp[i].plan.itineraries[j].legs[k].distance;
+					var phaseTime = jResp[i].plan.itineraries[j].legs[k].duraton;
+					var phaseEndTime = jResp[i].plan.itineraries[j].legs[k].endTime;
+					var phaseStartTime = jResp[i].plan.itineraries[j].legs[k].startTime;
+					var route = jResp[i].plan.itineraries[j].legs[k].route;
+					var routeLongName = jResp[i].plan.itineraries[j].legs[k].routeLongName;
+					var mode = jResp[i].plan.itineraries[j].legs[k].mode;
+					var from = jResp[i].plan.itineraries[j].legs[k].from.name;
+					var fArrival = jResp[i].plan.itineraries[j].legs[k].from.arrival;
+					var fDeparture = jResp[i].plan.itineraries[j].legs[k].from.departure;
+					var fStopLat = jResp[i].plan.itineraries[j].legs[k].from.lat;
+					var fStopLng = jResp[i].plan.itineraries[j].legs[k].from.lon;
+					var to = jResp[i].plan.itineraries[j].legs[k].to.name;
+					var toArrival = jResp[i].plan.itineraries[j].legs[k].to.arrival;
+					var toDeparture = jResp[i].plan.itineraries[j].legs[k].to.departure;
+					var toStopLat = jResp[i].plan.itineraries[j].legs[k].to.lat;
+					var toStopLng = jResp[i].plan.itineraries[j].legs[k].to.lon;
+					//console.log(from + " i= " + i + " j= " + j + " k= " + k); 
+					var singlePos = {lat: fStopLat, lng: fStopLng};
+					tripCoords[k] = singlePos;
+					console.log(tripCoords);
+				}//One answer-card = one journey-table
+				 //In answer-card input stops are bolded
+				 //passToAnswerArr one Array Element = one journey-table
+				 //In Array Element: from: first input to: last input
+			}//clear jTables.answers przy nowym requeście
+			tripArr.push(tripCoords);
+			this.polyLines[jTabID] = [];
+			for(i = 0; i < allLines.length; ++i){
+				this.getDrawingPoints(coords, options);
 			}
-		}	
+		}
+
+		console.log(tripArr);
+		coords = [new google.maps.LatLng(52.23277389083493,20.996074676513672),new google.maps.LatLng(52.23385808088306,21.002168655395508),new google.maps.LatLng(52.23220878734222,21.003166437149048),new google.maps.LatLng(52.22860772634976,21.005237102508545)];
+		options = {
+			journeyID: "",
+		}
+		this.getDrawingPoints(coords, options);
 	},
 	setPopUp: function(e){
 		if(this.infWind === undefined ){
@@ -302,7 +477,7 @@
 		
 		for(i = 0; i < jTabLen; ++i)
 		{
-			contentString += "<button type=\"button\" id=\"journeyLine\" onclick=\"passTable("+i+")\">Trasa " + i;
+			contentString += "<button type=\"button\" id=\"journeyLine\" onclick=\"passTable("+i+")\">Trasa " + (i+1);
 		}
 		this.infWind.setContent(contentString);
         this.infWind.setPosition(e.detail.latLng);
@@ -315,14 +490,17 @@
     	var inputs = choosenTab.getInputs(); 
 		for(i = 0; i < inputs.length; ++i)
 		{
-			contentLine += "<button type=\"button\" id=\"lineForInput" + i + "\" onclick=\"passToSetMarker(" + tableNum +  ", " + i + ")\">Przystanek: " + i;
+			contentLine += "<button type=\"button\" id=\"lineForInput" + i + "\" onclick=\"passToSetMarker(" + tableNum +  ", " + i + ")\">Przystanek: " + (i+1);
 		}
 		this.infWind.setContent(contentLine);
 	},
 	ready: function(e){
 		var map = this.$.warsawMap;	
 		map.addEventListener('google-map-rightclick', this.setPopUp);
+		map.addEventListener('google-map-dblclick', this.setPopUp);
 		this.addEventListener('google-map-ready', this.initBasicAutoComp);
+		this.$.journeyPages.addEventListener('iron-select', this.highlightPolyline);
+		this.$.journeyPages.addEventListener('iron-deselect', this.fadePolyline);
 	},
 	initAutoComplete: function(passedInput){
 		var defaultBounds = new google.maps.LatLngBounds(
@@ -330,15 +508,17 @@
   				new google.maps.LatLng(52.396134469429214, 21.430892944335938));
 
 	    	var options = {
-	    		bounds: defaultBounds
+	    		bounds: defaultBounds,
+	    		componentRestrictions:{country: "pl"}
 	    	};
-	    	var key = passedInput.detail.parentNode.parentNode.parentNode.parentNode.id + passedInput.detail.id;
+	    	var jTabid = passedInput.detail.parentNode.parentNode.parentNode.parentNode.id;
+	    	var key = jTabid + passedInput.detail.id;
 
 			var autocomplete = new google.maps.places.Autocomplete(passedInput.detail, options);
 
 			autocomplete.addListener('place_changed',function(){
 	    		place = autocomplete.getPlace();
-	    		document.querySelector('route-finder').setMarker(place, key, false);
+	    		document.querySelector('route-finder').setMarker(place, key, false, jTabid, passedInput.detail.id);
 	    	});
 	},
 	initBasicAutoComp: function(){
@@ -347,78 +527,207 @@
 	  				new google.maps.LatLng(52.396134469429214, 21.430892944335938));
 
 		    var options = {
-		    	bounds: defaultBounds
+		    	bounds: defaultBounds,
+		    	componentRestrictions:{country: "pl"}
 		    };
 		    var inputs = document.getElementById('jTid0').getInputs();
 	    	var autocomplete = new google.maps.places.Autocomplete(inputs[0], options);
 	    	var autocomplete1 = new google.maps.places.Autocomplete(inputs[1],options);
 
-	    	var key1 = inputs[0].parentNode.parentNode.parentNode.parentNode.id +inputs[0].id;
-	    	var key2 = inputs[1].parentNode.parentNode.parentNode.parentNode.id +inputs[1].id;
+	    	var key1 = 'jTid0' + inputs[0].id;
+	    	var key2 = 'jTid0' + inputs[1].id;
 
 	    	autocomplete.addListener('place_changed', function(){
 	    		place = autocomplete.getPlace();
-	    		document.querySelector('route-finder').setMarker(place, key1, false);
+	    		document.querySelector('route-finder').setMarker(place, key1, false, "jTid0", inputs[0].id);
 	    	});
 	    	autocomplete1.addListener('place_changed', function(){
 	    		place = autocomplete1.getPlace();
-	    		document.querySelector('route-finder').setMarker(place, key2, false);
+	    			    		document.querySelector('route-finder').setMarker(place, key2, false, "jTid0", inputs[1].id);
 	    	});
   	},
+	getDrawingPoints: function(coordsBook, options){
+		var coordsArr = []
+		for(i = 0; i < coordsBook.length; ++i)
+		{
+			coordsArr.push(coordsBook[i].toUrlValue()); 
+		}	
+		
+		$.get('https://roads.googleapis.com/v1/snapToRoads', {
+    		interpolate: true,
+    		key: "AIzaSyDaDW6auCLExulkcDpkRveDXXIr6dP6t_Y",
+    		path: coordsArr.join('|')
+  		}, 
+  		function(data){
+    		processGoogleSnapToRoadRespone(data, options);
+  		});
+	},
+	drawTrip: function(snappedPoints, options){
+		var lineColor = 'black';
+		switch(options.journeyID){
+			case "jTid0":
+				lineColor = '#7C4DFF';
+				break;
+			case "jTid1":
+				lineColor = 'green';
+				break;
+			case "jTid2":
+				lineColor = 'blue';
+				break;
+		}
+		var snappedPolyline = new google.maps.Polyline({
+    		path: snappedPoints,
+    		strokeColor: lineColor,
+            strokeOpacity: 0.5,
+            strokeWeight: 5
+  		});
+
+  		if(this.polyLines[options.journeyID] === undefined)
+	    {
+	    	this.polyLines[options.journeyID] = new Array();
+	    }
+
+		this.polyLines[options.journeyID].push({mapLine: snappedPolyline, lineNum: options.lineNum, jTabID: options.journeyID});	
+
+		var map = document.querySelector('google-map').map;
+  		snappedPolyline.setMap(map);
+
+  		google.maps.event.addListener(snappedPolyline, "mouseover", function(event) {
+  				var map = document.querySelector('google-map').map;
+  				document.getElementById(options.journeyID+options.lineNum).style.color = snappedPolyline.strokeColor;
+        });
+  		google.maps.event.addListener(snappedPolyline, 'mouseout', function (event) {
+             document.getElementById(options.journeyID+options.lineNum).style.color = "black";
+         });
+	},
+	highlightPolyline: function(e){
+		var mapLines = document.querySelector("route-finder").polyLines;
+		var ironJTableID = e.detail.item.firstElementChild.id;
+
+		for(i = 0; i < mapLines[ironJTableID].length; ++i){
+			mapLines[e.detail.item.firstElementChild.id][i].mapLine.setOptions({strokeOpacity: 1});
+		}
+	},
+	fadePolyline: function(e){
+		var mapLines = document.querySelector("route-finder").polyLines;
+		var ironJTableID = e.detail.item.firstElementChild.id;
+
+		for(i = 0; i < mapLines[ironJTableID].length; ++i){
+			mapLines[e.detail.item.firstElementChild.id][i].mapLine.setOptions({strokeOpacity: 0.4});
+		}
+	}
   });
-	/*TODO: Odbieranie i ładne wypisywanie odpowiedzi, oraz rysowanie linii między punktami, geolocation
-			SetMarker powinien być na enter, po wybraniu lokalizacji.*/
-	//L.Icon.Default.imagePath = "../images"; 		
+	/*TODO: Odbieranie i ładne wypisywanie odpowiedzi, oraz rysowanie linii między punktami, SetMarker powinien być na enter, po wybraniu lokalizacji.*/	
 	function passTable(passedTable){
 		document.querySelector("route-finder").setIwindowContent(passedTable);
 	}
+	function processGoogleSnapToRoadRespone(responeData, options){
+		var snappedCoordinates = [];  
+  		for (var i = 0; i < responeData.snappedPoints.length; ++i) {
+    		var latlng = new google.maps.LatLng(
+        		responeData.snappedPoints[i].location.latitude,
+        		responeData.snappedPoints[i].location.longitude);
+    		snappedCoordinates.push(latlng);
+  		}
+  		document.querySelector("route-finder").drawTrip(snappedCoordinates, options);
+	}
 	function passToSetMarker(tableNum, inputNum){
 		rFinder = document.querySelector("route-finder");
-		var key = "jTid" + tableNum + "inputStop" + inputNum;
-		rFinder.setMarker(rFinder.infWind.position, key, true);
+		var jTabid = "jTid" + tableNum;
+		var input = "inputStop" + inputNum;
+		var key = jTabid + input;
+		rFinder.setMarker(rFinder.infWind.position, key, true, jTabid, input);
 		rFinder.infWind.close();
 	}
 	function sendToOTP(coordsDict, jsonArr, jTable){	
 		var jOptions = jTable.getOptions();
-		var requestString = "http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=" + coordsDict[0].lat() + "," + coordsDict[0].lng() + "&toPlace=" + coordsDict[1].lat() + "," + coordsDict[1].lng() + "&time=" + jOptions["time"] + "&date=" + jOptions["date"] + "&mode=TRANSIT,WALK&maxWalkDistance=" + jOptions["maxWalk"] + "&arriveBy=" + jOptions["arriveBy"] + "&wheelchair=false&locale=en";
-		console.log(requestString);
-		var response;
+		//var requestString = "http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=" + coordsDict[0].lat() + "," + coordsDict[0].lng() + "&toPlace=" + coordsDict[1].lat() + "," + coordsDict[1].lng() + "&time=" + jOptions["time"] + "&date=" + jOptions["date"] + "&mode=TRANSIT,WALK&maxWalkDistance=" + jOptions["maxWalk"] + "&arriveBy=" + jOptions["arriveBy"] + "&wheelchair=false&locale=en";
+
+		var requestString = "http://localhost:8080/otp/routers/default/plan?fromPlace=" + coordsDict[0].lat() + "," + coordsDict[0].lng() + "&toPlace=" + coordsDict[1].lat() + "," + coordsDict[1].lng() + "&time=" + jOptions["time"] + "&date=" + jOptions["date"] + "&mode=TRANSIT%2CWALK&maxWalkDistance=" + jOptions["maxWalk"] + "&arriveBy=" + jOptions["arriveBy"] + "&wheelchair=false&locale=en";
+		console.log(requestString)
+
     	var reqHandler = new XMLHttpRequest();
 
- 		reqHandler.addEventListener("load", processRequest(coordsDict, jsonArr, jTable));
+		var handleStateChange = function (){
+		   switch (reqHandler.readyState) {
+		      case 0 : // UNINITIALIZED
+		      case 1 : // LOADING
+		      case 2 : // LOADED
+		      case 3 : // INTERACTIVE
+		      break;
+		      case 4 : // COMPLETED
+		      processRequest(coordsDict, jsonArr, jTable);
+		      break;
+		      default: alert("error");
+		   }
+		}
+
+ 		reqHandler.onreadystatechange=handleStateChange;
     	reqHandler.open('GET', requestString, true);
     	reqHandler.send();
 
     	function processRequest(passedDict, respJSONArr, jTable){
-    		console.log(reqHandler.status);
     		if(reqHandler.status === 200){
-    			console.log("here?");
-  				response = JSON.parse(reqHandler.responseText); 
-  				respJSONArr.push(respone);
+  				var response = JSON.parse(reqHandler.responseText); 
+  				respJSONArr.push(response);
 
   				var dictLen = Object.keys(passedDict).length;
   				if(dictLen > 2){
-  					for(i = 0; i < dictLen-2; ++i)
-  						passedDict[i] = passedDict[i+1]
+  					for(i = 0; i < dictLen-1; ++i){
+  						passedDict[i] = passedDict[i+1];
+  					}
   						
   					delete passedDict[dictLen-1];
-  					SendToOTP(passedDict, respJSONArr, jTable);
+  					sendToOTP(passedDict, respJSONArr, jTable);
   				}
   				else{
   					//setLines(respJSONArr);
-  					printResults(respJSONArr);
+  					document.querySelector("route-finder").printResults(respJSONArr);
   				}
-  				console.log(response);
   			}
 		}
 	}
-/*
-	marker o różnym kolorze w zależności od j-table, ikona markera z cyfrą odpowiadającą inputowi.
-	uaktualnianie koodrynatorów
-*/
+	function sendToAgnieszka(coordsDict, jTable){
+		var dictLen = Object.keys(passedDict).length;
+		var stringPartCoords = "";
+		for(i = 0; i < dictLen; ++i){
+			stringPartCoords += coordsDict[i].lat() + "," + coordsDict[i].lng() + ";" 
+		}
+		var requestString = "http://localhost:8080/otp/routers/default/plan?fromPlace=" + coordsDict[0].lat() + "," + coordsDict[0].lng() + "&toPlace=" + coordsDict[1].lat() + "," + coordsDict[1].lng() + "&time=" + jOptions["time"] + "&date=" + jOptions["date"] + "&mode=TRANSIT%2CWALK&maxWalkDistance=" + jOptions["maxWalk"] + "&arriveBy=" + jOptions["arriveBy"] + "&wheelchair=false&locale=en";
+		console.log(requestString)
 
+    	var reqHandler = new XMLHttpRequest();
 
-/*
+		var handleStateChange = function (){
+		   switch (reqHandler.readyState) {
+		      case 0 : // UNINITIALIZED
+		      case 1 : // LOADING
+		      case 2 : // LOADED
+		      case 3 : // INTERACTIVE
+		      break;
+		      case 4 : // COMPLETED
+		      processRequest(coordsDict, jsonArr, jTable);
+		      break;
+		      default: alert("error");
+		   }
+		}
+
+ 		reqHandler.onreadystatechange=handleStateChange;
+    	reqHandler.open('GET', requestString, true);
+    	reqHandler.send();
+
+    	function processRequest(passedDict, respJSONArr, jTable){
+    		if(reqHandler.status === 200){
+  					var response = JSON.parse(reqHandler.responseText); 
+  					document.querySelector("route-finder").printResults(response);
+  			}
+		}
+	}
+	/*
+przesuwanie po panelu bocznym -> To chyba zadziała normalnie
+panel górny też raczej zwijany
+drawer zawsze możliwy do zwiniecia, zwłaszcza na mobile średnio to działa.
+
 DEBUG STRING:
 
 http://violet.temote.pl:8080/otp/routers/default/plan?fromPlace=52.1836118,20.9790984&toPlace=52.2458726,20.9402570333431&time=2:44pm&date=02-04-2016&mode=TRANSIT,WALK&maxWalkDistance=804.672&arriveBy=false&wheelchair=false&locale=en
