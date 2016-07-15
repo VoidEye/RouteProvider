@@ -1,34 +1,26 @@
-<!DOCTYPE html>
-<head>
-	<link href="../bower_components/polymer/polymer.html" rel="import">
-	<link href="../bower_components/paper-drawer-panel/paper-drawer-panel.html" rel="import">
-	<link href="../bower_components/paper-header-panel/paper-header-panel.html" rel="import">
-	<link href="../bower_components/paper-toolbar/paper-toolbar.html" rel="import">
-	<link href="../bower_components/paper-icon-button/paper-icon-button.html" rel="import">
-	<link href="../bower_components/paper-item/paper-item.html" rel="import">
-	<link href="../bower_components/paper-input/paper-input.html" rel="import">
-	<link href="../bower_components/paper-fab/paper-fab.html" rel="import">
-	<link href="../bower_components/paper-button/paper-button.html" rel="import">
-	<link href="../bower_components/iron-icons/iron-icons.html" rel="import">
-	<link href="../bower_components/paper-card/paper-card.html" rel="import">
-	<link href="../bower_components/google-map/google-map.html" rel="import">
-	<link href="../bower_components/iron-signals/iron-signals.html" rel="import">
-	<link href="../bower_components/iron-collapse/iron-collapse.html" rel="import">
-	<link href="../bower_components/paper-tabs/paper-tabs.html" rel="import">
-	<link href="../bower_components/iron-pages/iron-pages.html" rel="import">
+<link href="../bower_components/polymer/polymer.html" rel="import">
+<link href="../bower_components/paper-drawer-panel/paper-drawer-panel.html" rel="import">
+<link href="../bower_components/paper-icon-button/paper-icon-button.html" rel="import">
+<link href="../bower_components/paper-item/paper-item.html" rel="import">
+<link href="../bower_components/paper-fab/paper-fab.html" rel="import">
+<link href="../bower_components/paper-button/paper-button.html" rel="import">
+<link href="../bower_components/iron-icons/iron-icons.html" rel="import">
+<link href="../bower_components/google-map/google-map.html" rel="import">
+<link href="../bower_components/iron-signals/iron-signals.html" rel="import">
+<link href="../bower_components/iron-collapse/iron-collapse.html" rel="import">
+<link href="../bower_components/paper-tabs/paper-tabs.html" rel="import">
+<link href="../bower_components/iron-pages/iron-pages.html" rel="import">
+<link rel="import" href="../bower_components/iron-icons/maps-icons.html">
 
-	<link rel="import" href="../bower_components/iron-icons/maps-icons.html">
-
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-	<script src="//code.jquery.com/jquery-2.2.2.js"></script>
-  	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-	<link href="answer-card.html" rel="import">
-	<link href="journey-table.html" rel="import">
-
-</head>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="//code.jquery.com/jquery-2.2.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<link href="answer-card.html" rel="import">
+<link href="journey-table.html" rel="import">
 
 <dom-module id="route-finder">
-	<style>
+<template>
+  <style>
 		#mainTopPanel {
 			overflow: none;
 			min-height: 100px;
@@ -62,19 +54,22 @@
 			display: table;
 			clear: both;
 		}
-		#jTid0/*, #ansBtn0*/{
-			--bckClr: red;
-			background-color: red; 
-
+		.jTabC, .aCards, #ansBtn0, #ansBtn1, #ansBtn2{
+			--bckClr: #DBDAEE;
+			background-color: #DBDAEE; 
 		}
-		#jTid1/*, #ansBtn1*/{
-			--bckClr: green;
-			background-color: green; 
-
+		#ansBtn0, #ansBtn1, #ansBtn2{
+			border-top-left-radius: 10px;
+			border-top-right-radius: 10px;
 		}
-		#jTid2/*, #ansBtn2*/{
-			--bckClr: blue;
-			background-color: blue; 
+		#mB0{
+			background-color: #ef5350;
+		}
+		#mB1{
+			background-color: #363C85; 
+		}
+		#mB2{
+			background-color: #287C3D;
 		}
 		#geoLocBtn{
 			color: blue;
@@ -106,7 +101,8 @@
       	}
 		paper-header-panel{
 			color: black;
-			background: #C7EDFF;
+			/*background: #C7EDFF;*/
+			/*background: white;*/
 			width: 100%;
 			overflow: visible;
 			min-height: 145px;
@@ -121,10 +117,10 @@
 			height: 100vh;
 			position: relative;
 			--paper-drawer-panel-main-container: {
-				background-color: C7EDFF;
+				background-color: #C7EDFF;
 			};
 			--paper-drawer-panel-left-drawer-container: {
-				background-color: #91DBFF;
+				background-color: #AFD3FF;
 			};
 		}
 		paper-tabs{
@@ -134,29 +130,30 @@
 		}
 		#journeyRemove{
 			position: absolute;
-    		top: 30;
+    		top: 20;
+    		background-color: #AFD3FF;
 		}
 		#journeyAdder{
 			position: absolute;
     		right: 10;
-    		top: 30;
+    		top: 20;
+    		background-color: #AFD3FF;
 		}
-	</style>
+  </style>
   
-	<template>
 	<paper-drawer-panel drawer-width="350px">
 		<paper-header-panel drawer class="clearfix">
 		<div>
-		<paper-button raised id="journeyRemove" class="jTableBtns" on-tap="removeTable">
-    				<iron-icon id="addStepIcon" icon="block"></iron-icon>
+		<paper-button flat id="journeyRemove" class="jTableBtns" on-tap="removeTable">
+    		<iron-icon icon="icons:remove-circle-outline"></iron-icon>
     			</paper-button>
 		<paper-tabs selected="{{selected}}">
 			<template is="dom-repeat" items="{{jTables}}">
-				<paper-tab>Journey {{item.num}}</paper-tab>
+				<paper-tab id="tab{{item.num}}">Trasa {{displayIndex(index)}}</paper-tab>
 			</template>
 		</paper-tabs>
-		<paper-button raised id="journeyAdder" class="jTableBtns" on-tap="addTable" >
-			<iron-icon id"addStepIcon" icon="add"></iron-icon>
+		<paper-button flat id="journeyAdder" class="jTableBtns" on-tap="addTable" >
+			<iron-icon id="addStepIcon" icon="add-circle-outline"></iron-icon>
 		</paper-button>
 		</div>
 		<iron-pages selected="{{selected}}" id="journeyPages">
@@ -167,9 +164,9 @@
 					<paper-fab id="{{item.mainButtonID}}" icon="icons:send" on-tap="forwardRequest" journey-number$="{{item.num}}" class="mainButton"></paper-fab>
 						
 					<template is="dom-if" if="{{responseParsed}}">
-						<button on-tap="toggle" id="ansBtn{{item.num}}" class="heading" j-num$="{{item.num}}">From: {{item.answer.from}} To: {{item.answer.to}}</button>
+						<button on-tap="toggle" id="ansBtn{{item.num}}" class="heading" j-num$="{{item.num}}">Z: {{item.answer.from}} Do: {{item.answer.to}}</button>
 						<iron-collapse id="collapse{{item.num}}">
-  							<div><answer-card id="{{item.answer.from}}" journey="{{item.answer.details}}"></answer-card></div>
+  							<div><answer-card id="ansCard{{item.num}}" class="aCards" journey="{{item.answer.details}}"></answer-card></div>
 						</iron-collapse>
 					</template>
 				</div>
@@ -199,10 +196,10 @@
     	},
     	jTables: {
     		type: Array,
-    		value:[ {htmlID: "jTid0", num:  0, mainButtonID: "mB0", dpID: "datePicker0", answer:{from: "Wiejska", to:"Księżyc", 
+    		value:[ {htmlID: "jTid0", num:  0, mainButtonID: "mB0", dpID: "datePicker0", answer:{from: "Hynka", to:"Warszawa Centralna", 
     					details: 
-    						[{lineNum: "513", startTime:"18.30", stopTime:"12.00", stopName: "asd", startName: "dsa", timeSpent: "7h31min", uProvStop: true, num: 1, generatedID: "jTid0513"}, 
-    						{lineNum: "522", startTime:"15.30", stopTime:"12.00", stopName: "asd", startName: "dsa", timeSpent: "7h31min", uProvStop: false, num: 2, generatedID: "jTid0522"}]}}]
+    						[{lineNum: "9", startTime:"20.00", stopTime:"20.19", stopName: "Dworzec Centralny", startName: "Hynka", timeSpent: "0h19min", uProvStop: true, num: 1, generatedID: "jTid09"}
+    						]}}]
     	},
     	infWind:{
     		type: Object,
@@ -224,6 +221,9 @@
     		type: Object,
     		value: function(){return {};}
     	}	
+    },
+    displayIndex: function(index){
+    	return index + 1;
     },
     addTable: function(){
     	if(this.jTables.length < 3)
@@ -250,8 +250,15 @@
     			this.hideMarker(key);
     		}	
     		this.pop('jTables');
-    		if(this.selected != 0)
+    		if(this.polyLines[jTabID] != undefined){
+    			for(i = 0; i < this.polyLines[jTabID].length; ++i)
+    				this.polyLines[jTabID][i].mapLine.setMap(null);
+    			delete this.polyLines[jTabID];
+    		}
+
+    		if(this.selected != 0){
     			this.selected = this.selected-1;
+    		}
     	}
 
     },
@@ -279,14 +286,6 @@
     	
     },
     forwardRequest: function(e){
-    	var options = {
-			journeyID: "jTid0",
-			lineNum: "513"
-		};
-    	coords = [new google.maps.LatLng(52.23277389083493,20.996074676513672),new google.maps.LatLng(52.23385808088306,21.002168655395508),new google.maps.LatLng(52.23220878734222,21.003166437149048),new google.maps.LatLng(52.22860772634976,21.005237102508545)];
-		this.getDrawingPoints(coords, options);
-
-
     	if(e.target.id === "icon")
     		var jNumber = e.target.parentNode.getAttribute('journey-number');
     	else
@@ -336,8 +335,7 @@
     },
 
 	setMarker: function(adress, key, fromPopUp, jTabid, inputID){
-		if(this.markers[key] === undefined)
-	    {
+		if(this.markers[key] === undefined){
 	    	var image = '../images/'+ jTabid + '/' + inputID + 'marker.png';
 	    	var marker = new google.maps.Marker({
 	    		draggable: true,
@@ -449,7 +447,7 @@
 		
 		for(i = 0; i < jTabLen; ++i)
 		{
-			contentString += "<button type=\"button\" id=\"journeyLine\" onclick=\"passTable("+i+")\">Trasa " + i;
+			contentString += "<button type=\"button\" id=\"journeyLine\" onclick=\"passTable("+i+")\">Trasa " + (i+1);
 		}
 		this.infWind.setContent(contentString);
         this.infWind.setPosition(e.detail.latLng);
@@ -462,7 +460,7 @@
     	var inputs = choosenTab.getInputs(); 
 		for(i = 0; i < inputs.length; ++i)
 		{
-			contentLine += "<button type=\"button\" id=\"lineForInput" + i + "\" onclick=\"passToSetMarker(" + tableNum +  ", " + i + ")\">Przystanek: " + i;
+			contentLine += "<button type=\"button\" id=\"lineForInput" + i + "\" onclick=\"passToSetMarker(" + tableNum +  ", " + i + ")\">Przystanek: " + (i+1);
 		}
 		this.infWind.setContent(contentLine);
 	},
@@ -480,11 +478,11 @@
   				new google.maps.LatLng(52.396134469429214, 21.430892944335938));
 
 	    	var options = {
-	    		bounds: defaultBounds
+	    		bounds: defaultBounds,
+	    		componentRestrictions:{country: "pl"}
 	    	};
 	    	var jTabid = passedInput.detail.parentNode.parentNode.parentNode.parentNode.id;
 	    	var key = jTabid + passedInput.detail.id;
-
 			var autocomplete = new google.maps.places.Autocomplete(passedInput.detail, options);
 
 			autocomplete.addListener('place_changed',function(){
@@ -498,7 +496,8 @@
 	  				new google.maps.LatLng(52.396134469429214, 21.430892944335938));
 
 		    var options = {
-		    	bounds: defaultBounds
+		    	bounds: defaultBounds,
+		    	componentRestrictions:{country: "pl"}
 		    };
 		    var inputs = document.getElementById('jTid0').getInputs();
 	    	var autocomplete = new google.maps.places.Autocomplete(inputs[0], options);
@@ -506,14 +505,15 @@
 
 	    	var key1 = 'jTid0' + inputs[0].id;
 	    	var key2 = 'jTid0' + inputs[1].id;
-
+	    	console.log(inputs[0].id);
+	    	console.log(inputs[1].id);
 	    	autocomplete.addListener('place_changed', function(){
 	    		place = autocomplete.getPlace();
 	    		document.querySelector('route-finder').setMarker(place, key1, false, "jTid0", inputs[0].id);
 	    	});
 	    	autocomplete1.addListener('place_changed', function(){
 	    		place = autocomplete1.getPlace();
-	    			    		document.querySelector('route-finder').setMarker(place, key2, false, "jTid0", inputs[0].id);
+	    			    		document.querySelector('route-finder').setMarker(place, key2, false, "jTid0", inputs[1].id);
 	    	});
   	},
 	getDrawingPoints: function(coordsBook, options){
@@ -536,13 +536,13 @@
 		var lineColor = 'black';
 		switch(options.journeyID){
 			case "jTid0":
-				lineColor = 'red';
+				lineColor = '#ef5350';
 				break;
 			case "jTid1":
-				lineColor = 'green';
+				lineColor = '#363C85';
 				break;
 			case "jTid2":
-				lineColor = 'blue';
+				lineColor = '#287C3D';
 				break;
 		}
 		var snappedPolyline = new google.maps.Polyline({
@@ -564,26 +564,31 @@
 
   		google.maps.event.addListener(snappedPolyline, "mouseover", function(event) {
   				var map = document.querySelector('google-map').map;
+  				console.log(options.journeyID+options.lineNum);
   				document.getElementById(options.journeyID+options.lineNum).style.color = snappedPolyline.strokeColor;
         });
   		google.maps.event.addListener(snappedPolyline, 'mouseout', function (event) {
-             document.getElementById(options.journeyID+options.lineNum).style.color = "black";
+  			var ansID = document.getElementById(options.journeyID+options.lineNum)
+  			if(ansID != null)
+             	document.getElementById(options.journeyID+options.lineNum).style.color = "black";
          });
 	},
 	highlightPolyline: function(e){
 		var mapLines = document.querySelector("route-finder").polyLines;
 		var ironJTableID = e.detail.item.firstElementChild.id;
-
-		for(i = 0; i < mapLines[ironJTableID].length; ++i){
-			mapLines[e.detail.item.firstElementChild.id][i].mapLine.setOptions({strokeOpacity: 1});
+		if(mapLines[ironJTableID] != undefined){
+			for(i = 0; i < mapLines[ironJTableID].length; ++i){
+				mapLines[ironJTableID][i].mapLine.setOptions({strokeOpacity: 1});
+			}
 		}
 	},
 	fadePolyline: function(e){
 		var mapLines = document.querySelector("route-finder").polyLines;
 		var ironJTableID = e.detail.item.firstElementChild.id;
-
-		for(i = 0; i < mapLines[ironJTableID].length; ++i){
-			mapLines[e.detail.item.firstElementChild.id][i].mapLine.setOptions({strokeOpacity: 0.4});
+		if(mapLines[ironJTableID] != undefined){
+			for(i = 0; i < mapLines[ironJTableID].length; ++i){
+				mapLines[ironJTableID][i].mapLine.setOptions({strokeOpacity: 0.4});
+			}
 		}
 	}
   });

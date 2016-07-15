@@ -1,0 +1,30 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link href="../bower_components/paper-button/paper-button.html" rel="import">
+
+<dom-module id="example-element">
+  <template>
+    <style>
+      paper-button {
+      	background-color: #AFD3FF;
+        width: 50px;
+        height: 50px;
+      }
+    </style>
+    <paper-button id="example" on-tap="foo">Button</paper-button>
+  </template>
+
+  <script>
+  Polymer({
+    is: 'example-element',
+    properties: {
+      bar: {
+      	type: String,
+      	value: "This is button"
+      }
+    },
+    foo: function() {
+      this.$.example.innerHTML = this.bar;
+    }
+  });
+  </script>
+</dom-module>

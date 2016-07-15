@@ -6,7 +6,18 @@
 
 <dom-module id="answer-card">
 <style>
-	
+	paper-card{
+        border-radius: 10px;
+        width: 100%;
+    }
+    .card-content{
+        background-color: var(--bckClr);
+        border-style: outset;
+        border-width: 2px;
+        border-color: #B6B6B6;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
 </style>
 <template>
 	<paper-card>
@@ -32,7 +43,7 @@
     	properties: {
     		journey:{
     			type: Array,
-    			value: function(){return [];},
+    			value: function(){return [];}
     		}
     	},
     	boldSignificantStop: function(){

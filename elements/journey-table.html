@@ -15,15 +15,9 @@
 <dom-module id="journey-table">
 
 <style>
-	#stepAdder, #stepRemover{
-		background-color: green;
-		height: 25px;
-		margin-top: 15px;
-		min-width: 35px;
-		padding: 0px;
-	}
 	#wholeTable {
-		/*background-color: var(--bckClr);*/
+		background-color: #F5F5F5; 
+		border-radius: 10px;
 		overflow: hidden;
 		height: auto;
 		margin-top: 10px;
@@ -37,7 +31,7 @@
 		width: 75px;
 	}
 	#DirectionsEntry {
-		margin-top: 15px;
+		margin-top: 10px;
 		padding-top: 50px;
 		max-width: 180px;
 		max-height: 200px;
@@ -92,10 +86,17 @@
 	#maxWalk{
 		width: 55px;
 	}
+	#stopButtons{
+		margin-left: 3px;
+		height: 32px;
+	}
 	#stepAdder, #stepRemover{
+		border-radius: 8px;
+		background-color: var(--bckClr);
 		font-size: 1px;
 		margin-top: 5px;
 		min-width: 30px;
+		height: 23px;
 	}
 	#datePickerD{
 		display: none;
@@ -103,6 +104,7 @@
 	.directionsInput {
 		max-width: 200px;
 		margin-top: 5px;
+		width: 175px;
 	}
 	paper-material{
 		max-width: 330px;
@@ -123,17 +125,18 @@
     				<input type="text" id="{{item.StopName}}" class="directionsInput">
     			</template>	
     		<div id="stopButtons">
-    			<paper-button raised id="stepAdder" on-tap="addStep"> 
-    				<iron-icon id"addStepIcon" icon="add"></iron-icon>
-    			</paper-button>
     			<paper-button raised id="stepRemover" on-tap="removeStep"> 
-    				<iron-icon id"removeStepIcon" icon="block"></iron-icon>
+    				<iron-icon id="removeStepIcon" icon="icons:remove"></iron-icon>
     			</paper-button>
+    			<paper-button raised id="stepAdder" on-tap="addStep"> 
+    				<iron-icon id="addStepIcon" icon="add"></iron-icon>
+    			</paper-button>
+    			
     		</div>
     		</div>
     		<div id="buttons">
     			<template is="dom-repeat" items="{{swapButtons}}">
-    				<img src="../images/swap.jpg" id="{{item}}" on-tap="swapInputs" class="swapButtons"/>
+    				<img src="../images/Swap.jpg" id="{{item}}" on-tap="swapInputs" class="swapButtons"/>
     			</template>
     		</div>
     	</div>
@@ -242,7 +245,7 @@
            			$(".ui-datepicker").css('font-size', 12) 
     			}
     		});
-
+    		/*because firefox*/
     		if(this.$.wholeTable.parentNode.id != 'jTid0'){
     			this.fire('iron-signal', {name: 'inputadded', data:this.$$('#inputStop0')});
     			this.fire('iron-signal', {name: 'inputadded', data:this.$$('#inputStop1')});
@@ -277,6 +280,8 @@
 				minutes = '0' + minutes;
 
 			today = mm+'/'+dd+'/'+yyyy;
+			if(hours < 10)
+				hours = '0' + hours;
 			this.$.hourPicker.value = hours;
 			this.$.minutePicker.value = minutes;
 			var dateP = Polymer.dom(this.root).querySelector('#' + this.datepickerid);
